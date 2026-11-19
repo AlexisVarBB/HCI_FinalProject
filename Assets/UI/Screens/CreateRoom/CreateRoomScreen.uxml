@@ -1,0 +1,131 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="CreateRoomScreen.uss" />
+    <ui:VisualElement name="createRoomScreen" class="screen">
+
+        <ui:VisualElement class="header">
+            <ui:VisualElement name="backButton" class="back-button">
+                <ui:VisualElement class="back-button__icon" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label text="Set up your Detox Room" class="header__title" />
+        </ui:VisualElement>
+
+        <!-- Duración -->
+        <ui:Label text="CHALLENGE DURATION" class="section-label" />
+        <ui:VisualElement name="durationSelect" class="select">
+            <ui:Label name="durationLabel" text="7 Days" class="select__label" picking-mode="Ignore" />
+            <ui:VisualElement class="select__chevron" picking-mode="Ignore" />
+        </ui:VisualElement>
+        <ui:VisualElement name="durationOptions" class="options" />
+        <ui:VisualElement name="customDuration" class="custom-duration">
+            <ui:IntegerField name="amountField" value="1" class="amount-field" />
+            <ui:VisualElement class="segment">
+                <ui:Label name="unitHours" text="Hrs" class="segment__item" />
+                <ui:Label name="unitDays" text="Days" class="segment__item" />
+                <ui:Label name="unitWeeks" text="Weeks" class="segment__item" />
+                <ui:Label name="unitMonths" text="Months" class="segment__item" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Apps -->
+        <ui:Label text="TARGET APPS" class="section-label" />
+        <ui:VisualElement name="app_tiktok" class="app-card app-card--on">
+            <ui:VisualElement class="app-card__icon-box" picking-mode="Ignore">
+                <ui:VisualElement class="app-card__icon app-card__icon--tiktok" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label text="TikTok" class="app-card__label" picking-mode="Ignore" />
+            <ui:VisualElement class="switch" picking-mode="Ignore">
+                <ui:VisualElement class="switch__knob" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="app_instagram" class="app-card app-card--on">
+            <ui:VisualElement class="app-card__icon-box" picking-mode="Ignore">
+                <ui:VisualElement class="app-card__icon app-card__icon--instagram" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label text="Instagram" class="app-card__label" picking-mode="Ignore" />
+            <ui:VisualElement class="switch" picking-mode="Ignore">
+                <ui:VisualElement class="switch__knob" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Castigos -->
+        <ui:VisualElement class="section-row">
+            <ui:Label text="CHOOSE THE LOSER'S PUNISHMENT" class="section-label" />
+            <ui:Label text="Swipe" class="section-hint" />
+        </ui:VisualElement>
+        <ui:ScrollView name="punishmentScroll" mode="Vertical" touch-scroll-type="Elastic" vertical-scroller-visibility="Hidden" horizontal-scroller-visibility="Hidden" class="punishment-scroll">
+
+            <ui:VisualElement name="punishment_pay_dinner" class="punishment-card punishment-card--selected">
+                <ui:VisualElement class="punishment-card__top" picking-mode="Ignore">
+                    <ui:VisualElement class="punishment-card__icon-box" picking-mode="Ignore">
+                        <ui:VisualElement class="punishment-card__icon punishment-card__icon--utensils" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="punishment-card__check" picking-mode="Ignore">
+                        <ui:VisualElement class="punishment-card__check-icon" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label text="Pay for Dinner" class="punishment-card__title" picking-mode="Ignore" />
+                <ui:Label text="Cover the group tab at the next hangout" class="punishment-card__desc" picking-mode="Ignore" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="punishment_post_tiktok" class="punishment-card">
+                <ui:VisualElement class="punishment-card__top" picking-mode="Ignore">
+                    <ui:VisualElement class="punishment-card__icon-box" picking-mode="Ignore">
+                        <ui:VisualElement class="punishment-card__icon punishment-card__icon--video" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="punishment-card__check" picking-mode="Ignore">
+                        <ui:VisualElement class="punishment-card__check-icon" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label text="Post an embarrassing TikTok" class="punishment-card__title" picking-mode="Ignore" />
+                <ui:Label text="Group picks the sound and caption" class="punishment-card__desc" picking-mode="Ignore" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="punishment_buy_coffee" class="punishment-card">
+                <ui:VisualElement class="punishment-card__top" picking-mode="Ignore">
+                    <ui:VisualElement class="punishment-card__icon-box" picking-mode="Ignore">
+                        <ui:VisualElement class="punishment-card__icon punishment-card__icon--coffee" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="punishment-card__check" picking-mode="Ignore">
+                        <ui:VisualElement class="punishment-card__check-icon" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label text="Buy coffee for the group" class="punishment-card__title" picking-mode="Ignore" />
+                <ui:Label text="Iced lattes for everyone tomorrow morning" class="punishment-card__desc" picking-mode="Ignore" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="punishment_wear_outfit" class="punishment-card">
+                <ui:VisualElement class="punishment-card__top" picking-mode="Ignore">
+                    <ui:VisualElement class="punishment-card__icon-box" picking-mode="Ignore">
+                        <ui:VisualElement class="punishment-card__icon punishment-card__icon--shirt" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="punishment-card__check" picking-mode="Ignore">
+                        <ui:VisualElement class="punishment-card__check-icon" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label text="Wear an outfit the group picks" class="punishment-card__title" picking-mode="Ignore" />
+                <ui:Label text="A full day in whatever they choose" class="punishment-card__desc" picking-mode="Ignore" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="punishment_sing_karaoke" class="punishment-card">
+                <ui:VisualElement class="punishment-card__top" picking-mode="Ignore">
+                    <ui:VisualElement class="punishment-card__icon-box" picking-mode="Ignore">
+                        <ui:VisualElement class="punishment-card__icon punishment-card__icon--mic" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="punishment-card__check" picking-mode="Ignore">
+                        <ui:VisualElement class="punishment-card__check-icon" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label text="Sing karaoke solo" class="punishment-card__title" picking-mode="Ignore" />
+                <ui:Label text="One song of the group's choice, no backing out" class="punishment-card__desc" picking-mode="Ignore" />
+            </ui:VisualElement>
+
+        </ui:ScrollView>
+
+        <ui:Button name="generateButton" class="generate-button">
+            <ui:VisualElement class="generate-button__icon" picking-mode="Ignore" />
+            <ui:Label name="generateLabel" text="Generate Room Code" class="generate-button__label" picking-mode="Ignore" />
+        </ui:Button>
+        <ui:Label name="statusLabel" class="status-label" />
+
+    </ui:VisualElement>
+</ui:UXML>

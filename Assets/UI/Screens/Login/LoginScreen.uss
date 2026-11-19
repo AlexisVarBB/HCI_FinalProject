@@ -1,0 +1,126 @@
+.screen {
+    flex-grow: 1;
+    background-color: #0A0D12;
+    overflow: hidden;
+}
+
+.top-glow {
+    position: absolute;
+    top: -150px;
+    left: 50%;
+    width: 380px;
+    height: 380px;
+    translate: -50% 0;
+}
+
+.brand {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-box {
+    width: 85px;
+    height: 85px;
+    margin-bottom: 18px;
+    border-radius: 16px;
+    border-width: 1px;
+    border-color: rgba(0, 240, 138, 0.35);
+    background-color: #0E1814;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-icon {
+    width: 50px;
+    height: 50px;
+}
+
+.title-row {
+    flex-direction: row;
+}
+
+.title {
+    margin: 0;
+    padding: 0;
+    font-size: 36px;
+    -unity-font-style: bold;
+    color: #F2F4F7;
+}
+
+.title--accent {
+    color: #00F08A;
+}
+
+.form {
+    padding: 0 16px 24px 16px;
+}
+
+.name-field {
+    margin: 0 0 12px 0;
+}
+
+.name-field .unity-base-text-field__input {
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+    font-size: 14px;
+    color: #E6E9EE;
+    transition-duration: 0.15s;
+}
+
+.name-field:focus .unity-base-text-field__input {
+    border-color: #00F08A;
+}
+
+.name-field--error .unity-base-text-field__input {
+    border-color: #FF5C6C;
+}
+
+.enter-button {
+    height: 48px;
+    margin: 0;
+    border-radius: 12px;
+    border-width: 0;
+    background-color: #00F08A;
+    color: #0A0D12;
+    font-size: 14px;
+    -unity-font-style: bold;
+    transition-duration: 0.15s;
+}
+
+.enter-button:hover {
+    background-color: #2BFFA2;
+}
+
+.enter-button:active {
+    background-color: #00C873;
+    scale: 0.98 0.98;
+}
+
+.enter-button:disabled {
+    opacity: 0.6;
+}
+
+.status-label {
+    display: none;
+    margin-top: 10px;
+    font-size: 12px;
+    -unity-text-align: middle-center;
+    color: #8A93A3;
+}
+
+.status-label--visible {
+    display: flex;
+}
+
+.status-label--error {
+    color: #FF5C6C;
+}
+
+.status-label--success {
+    color: #00F08A;
+}

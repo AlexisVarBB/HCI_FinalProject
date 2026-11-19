@@ -1,0 +1,52 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:dt="DetoxBet.UI">
+    <ui:Style src="MenuScreen.uss" />
+    <ui:VisualElement name="menuScreen" class="screen">
+
+        <ui:VisualElement name="header" class="header">
+            <ui:VisualElement class="brand">
+                <ui:VisualElement class="brand-logo">
+                    <dt:ShieldBoltIcon class="brand-logo__icon" />
+                </ui:VisualElement>
+                <ui:Label text="Detox" class="brand-title" />
+                <ui:Label text="Bet" class="brand-title brand-title--accent" />
+            </ui:VisualElement>
+            <ui:VisualElement name="logoutButton" class="user-pill">
+                <ui:VisualElement class="user-pill__icon" picking-mode="Ignore" />
+                <ui:Label name="userNameLabel" text="Alexis" class="user-pill__label" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:Label name="greetingLabel" text="Hello, &lt;color=#00F08A&gt;Alexis&lt;/color&gt;! Ready to focus?" class="greeting" />
+
+        <ui:VisualElement name="cards" class="cards">
+
+            <ui:VisualElement name="createRoomCard" class="card card--primary">
+                <dt:RadialGlow class="card__glow" picking-mode="Ignore" />
+                <ui:VisualElement class="card__top" picking-mode="Ignore">
+                    <ui:VisualElement class="card__icon-box" picking-mode="Ignore">
+                        <ui:VisualElement class="card__icon card__icon--crown" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="card__arrow" picking-mode="Ignore">
+                        <ui:VisualElement class="card__arrow-icon" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label text="HOST A CHALLENGE" class="card__eyebrow" picking-mode="Ignore" />
+                <ui:Label text="Create a Room" class="card__title" picking-mode="Ignore" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="joinRoomCard" class="card">
+                <ui:VisualElement class="card__top" picking-mode="Ignore">
+                    <ui:VisualElement class="card__icon-box" picking-mode="Ignore">
+                        <ui:VisualElement class="card__icon card__icon--users" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="card__arrow" picking-mode="Ignore">
+                        <ui:VisualElement class="card__arrow-icon" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label text="ENTER INVITE CODE" class="card__eyebrow" picking-mode="Ignore" />
+                <ui:Label text="Join a Room" class="card__title" picking-mode="Ignore" />
+            </ui:VisualElement>
+
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

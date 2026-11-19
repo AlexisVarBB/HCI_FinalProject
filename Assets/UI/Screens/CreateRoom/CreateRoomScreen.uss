@@ -1,0 +1,488 @@
+.screen {
+    flex-grow: 1;
+    padding: 16px;
+    background-color: #0A0D12;
+}
+
+/* ---------- Header ---------- */
+
+.header {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.back-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+    align-items: center;
+    justify-content: center;
+    transition-duration: 0.15s;
+}
+
+.back-button:hover {
+    border-color: #3A4352;
+}
+
+.back-button__icon {
+    width: 14px;
+    height: 14px;
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/arrow-left.png");
+    -unity-background-image-tint-color: #C9CFDA;
+}
+
+.header__title {
+    margin: 0 0 0 12px;
+    padding: 0;
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: #F2F4F7;
+}
+
+/* ---------- Secciones ---------- */
+
+.section-label {
+    margin: 18px 0 8px 0;
+    padding: 0;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #8A93A3;
+}
+
+.section-row {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.section-hint {
+    margin: 0 0 8px 0;
+    padding: 0;
+    font-size: 10px;
+    color: #5C6573;
+}
+
+/* ---------- Duración ---------- */
+
+.select {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+    transition-duration: 0.15s;
+}
+
+.select:hover {
+    border-color: #3A4352;
+}
+
+.select--open {
+    border-color: #00F08A;
+}
+
+.select__label {
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    color: #F2F4F7;
+}
+
+.select__chevron {
+    width: 14px;
+    height: 14px;
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/chevron-down.png");
+    -unity-background-image-tint-color: #8A93A3;
+    transition-duration: 0.15s;
+}
+
+.select--open .select__chevron {
+    rotate: 180deg;
+    -unity-background-image-tint-color: #00F08A;
+}
+
+.options {
+    display: none;
+    margin-top: 6px;
+    padding: 4px;
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+}
+
+.options--open {
+    display: flex;
+}
+
+.option {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 8px;
+    justify-content: center;
+}
+
+.option:hover {
+    background-color: #1C2230;
+}
+
+.option--selected {
+    background-color: rgba(0, 240, 138, 0.08);
+}
+
+.option__label {
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    color: #C9CFDA;
+}
+
+.option--selected .option__label {
+    color: #00F08A;
+}
+
+.custom-duration {
+    display: none;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.custom-duration--visible {
+    display: flex;
+}
+
+.amount-field {
+    width: 72px;
+    margin: 0 8px 0 0;
+}
+
+.amount-field .unity-base-text-field__input {
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+    font-size: 14px;
+    -unity-text-align: middle-center;
+    color: #F2F4F7;
+}
+
+.amount-field:focus .unity-base-text-field__input {
+    border-color: #00F08A;
+}
+
+.segment {
+    flex-direction: row;
+    flex-grow: 1;
+    height: 40px;
+    padding: 3px;
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+}
+
+.segment__item {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    border-radius: 9px;
+    font-size: 12px;
+    -unity-text-align: middle-center;
+    color: #8A93A3;
+    transition-duration: 0.15s;
+}
+
+.segment__item:hover {
+    color: #F2F4F7;
+}
+
+.segment__item--selected {
+    background-color: #00F08A;
+    -unity-font-style: bold;
+    color: #0A0D12;
+}
+
+.segment__item--selected:hover {
+    color: #0A0D12;
+}
+
+/* ---------- Apps ---------- */
+
+.app-card {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 12px;
+    border-radius: 14px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+    transition-duration: 0.15s;
+}
+
+.app-card--on {
+    border-color: rgba(0, 240, 138, 0.4);
+    background-color: #0F1916;
+}
+
+.app-card__icon-box {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background-color: #1C2230;
+    align-items: center;
+    justify-content: center;
+}
+
+.app-card--on .app-card__icon-box {
+    background-color: #16261F;
+}
+
+.app-card__icon {
+    width: 16px;
+    height: 16px;
+    -unity-background-image-tint-color: #8A93A3;
+}
+
+.app-card--on .app-card__icon {
+    -unity-background-image-tint-color: #00F08A;
+}
+
+.app-card__icon--tiktok {
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/music.png");
+}
+
+.app-card__icon--instagram {
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/camera.png");
+}
+
+.app-card__label {
+    flex-grow: 1;
+    margin: 0 0 0 12px;
+    padding: 0;
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: #F2F4F7;
+}
+
+.switch {
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background-color: #2E3646;
+    transition-duration: 0.15s;
+}
+
+.app-card--on .switch {
+    background-color: #00F08A;
+}
+
+.switch__knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background-color: #F2F4F7;
+    transition-duration: 0.15s;
+}
+
+.app-card--on .switch__knob {
+    left: 23px;
+    background-color: #0A0D12;
+}
+
+/* ---------- Castigos ---------- */
+
+.punishment-scroll {
+    flex-grow: 1;
+    min-height: 140px;
+}
+
+.punishment-card {
+    min-height: 96px;
+    margin-bottom: 8px;
+    padding: 14px;
+    border-radius: 14px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+    transition-duration: 0.15s;
+}
+
+.punishment-card:hover {
+    border-color: #3A4352;
+}
+
+.punishment-card--selected {
+    border-color: #00F08A;
+    background-color: #0F1916;
+}
+
+.punishment-card--selected:hover {
+    border-color: #00F08A;
+}
+
+.punishment-card__top {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.punishment-card__icon-box {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    border-width: 1px;
+    border-color: #2E3646;
+    background-color: #1C2230;
+    align-items: center;
+    justify-content: center;
+}
+
+.punishment-card--selected .punishment-card__icon-box {
+    border-width: 0;
+    background-color: #00F08A;
+}
+
+.punishment-card__icon {
+    width: 16px;
+    height: 16px;
+    -unity-background-image-tint-color: #8A93A3;
+}
+
+.punishment-card--selected .punishment-card__icon {
+    -unity-background-image-tint-color: #0A0D12;
+}
+
+.punishment-card__icon--utensils {
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/utensils.png");
+}
+
+.punishment-card__icon--video {
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/video.png");
+}
+
+.punishment-card__icon--coffee {
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/coffee.png");
+}
+
+.punishment-card__icon--shirt {
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/shirt.png");
+}
+
+.punishment-card__icon--mic {
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/mic.png");
+}
+
+.punishment-card__check {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    background-color: rgba(0, 240, 138, 0.15);
+    align-items: center;
+    justify-content: center;
+}
+
+.punishment-card--selected .punishment-card__check {
+    display: flex;
+}
+
+.punishment-card__check-icon {
+    width: 11px;
+    height: 11px;
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/check.png");
+    -unity-background-image-tint-color: #00F08A;
+}
+
+.punishment-card__title {
+    margin: 12px 0 4px 0;
+    padding: 0;
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #F2F4F7;
+}
+
+.punishment-card__desc {
+    margin: 0;
+    padding: 0;
+    font-size: 11px;
+    color: #8A93A3;
+    white-space: normal;
+}
+
+/* ---------- Botón y estado ---------- */
+
+.generate-button {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 52px;
+    margin: 12px 0 0 0;
+    border-radius: 14px;
+    border-width: 0;
+    background-color: #00F08A;
+    transition-duration: 0.15s;
+}
+
+.generate-button:hover {
+    background-color: #2BFFA2;
+}
+
+.generate-button:active {
+    background-color: #00C873;
+    scale: 0.98 0.98;
+}
+
+.generate-button:disabled {
+    opacity: 0.6;
+}
+
+.generate-button__icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/sparkles.png");
+    -unity-background-image-tint-color: #0A0D12;
+}
+
+.generate-button__label {
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: #0A0D12;
+}
+
+.status-label {
+    display: none;
+    margin-top: 8px;
+    font-size: 12px;
+    -unity-text-align: middle-center;
+    color: #8A93A3;
+}
+
+.status-label--visible {
+    display: flex;
+}
+
+.status-label--error {
+    color: #FF5C6C;
+}
+
+.status-label--success {
+    color: #00F08A;
+}

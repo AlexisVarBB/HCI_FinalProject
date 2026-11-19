@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:dt="DetoxBet.UI" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Screens/Login/LoginScreen.uss?fileID=7433441132597879392&amp;guid=a5718c2096c08994cb07dc6b14cd2787&amp;type=3#LoginScreen"/>
+    <ui:VisualElement name="loginScreen" class="screen">
+        <dt:RadialGlow name="topGlow" picking-mode="Ignore" class="top-glow"/>
+        <ui:VisualElement name="brand" class="brand">
+            <ui:VisualElement name="logoBox" class="logo-box">
+                <dt:ShieldBoltIcon name="logoIcon" class="logo-icon"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="title-row">
+                <ui:Label text="Detox" class="title"/>
+                <ui:Label text="Bet" class="title title--accent"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="form" class="form">
+            <ui:TextField name="nameField" placeholder-text="Enter Your Name" max-length="40" class="name-field"/>
+            <ui:Button name="enterButton" text="Enter  →" class="enter-button"/>
+            <ui:Label name="statusLabel" class="status-label"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
