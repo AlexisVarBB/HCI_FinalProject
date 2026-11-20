@@ -1,0 +1,19 @@
+/* Raíz: mismo color que el fondo de las pantallas, para que no se note ningún borde */
+.app-root {
+    flex-grow: 1;
+    align-items: center;
+    background-color: #0A0D12;
+}
+
+/* Celular / tablet: columna de hasta 440 px */
+.app-frame {
+    flex-grow: 1;
+    width: 100%;
+    max-width: 440px;
+    overflow: hidden;
+}
+
+/* Escritorio: ocupa toda la ventana (Responsive.uss acomoda el contenido) */
+.app-frame--wide {
+    max-width: 100%;
+}

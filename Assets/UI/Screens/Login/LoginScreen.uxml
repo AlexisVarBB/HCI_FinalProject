@@ -1,20 +1,33 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:dt="DetoxBet.UI" editor-extension-mode="False">
-    <Style src="project://database/Assets/UI/Screens/Login/LoginScreen.uss?fileID=7433441132597879392&amp;guid=a5718c2096c08994cb07dc6b14cd2787&amp;type=3#LoginScreen"/>
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:dt="DetoxBet.UI">
+    <ui:Style src="LoginScreen.uss" />
+    <ui:Style src="LoginAuth.uss" />
     <ui:VisualElement name="loginScreen" class="screen">
-        <dt:RadialGlow name="topGlow" picking-mode="Ignore" class="top-glow"/>
+        <dt:RadialGlow name="topGlow" class="top-glow" picking-mode="Ignore" />
         <ui:VisualElement name="brand" class="brand">
             <ui:VisualElement name="logoBox" class="logo-box">
-                <dt:ShieldBoltIcon name="logoIcon" class="logo-icon"/>
+                <dt:ShieldBoltIcon name="logoIcon" class="logo-icon" />
             </ui:VisualElement>
             <ui:VisualElement class="title-row">
-                <ui:Label text="Detox" class="title"/>
-                <ui:Label text="Bet" class="title title--accent"/>
+                <ui:Label text="Detox" class="title" />
+                <ui:Label text="Bet" class="title title--accent" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="form" class="form">
-            <ui:TextField name="nameField" placeholder-text="Enter Your Name" max-length="40" class="name-field"/>
-            <ui:Button name="enterButton" text="Enter  →" class="enter-button"/>
-            <ui:Label name="statusLabel" class="status-label"/>
+            <!-- Opción 1: nombre de usuario -->
+            <ui:TextField name="nameField" placeholder-text="Enter Your Name" max-length="40" class="name-field" />
+            <ui:Button name="enterButton" text="Enter" class="enter-button" />
+
+            <!-- Opción 2: Google (se oculta en el Editor) -->
+            <ui:VisualElement name="googleSection" class="google-section">
+                <ui:VisualElement class="divider">
+                    <ui:VisualElement class="divider__line" />
+                    <ui:Label text="or" class="divider__label" />
+                    <ui:VisualElement class="divider__line" />
+                </ui:VisualElement>
+                <ui:Button name="googleButton" text="Continue with Google" class="google-button" />
+            </ui:VisualElement>
+
+            <ui:Label name="statusLabel" class="status-label" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

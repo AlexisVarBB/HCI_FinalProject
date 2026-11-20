@@ -1,0 +1,345 @@
+.screen {
+    flex-grow: 1;
+    padding: 16px;
+    background-color: #0A0D12;
+}
+
+/* ---------- Barra superior ---------- */
+
+.top-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+}
+
+.room-pill {
+    flex-direction: row;
+    align-items: center;
+    height: 22px;
+    padding: 0 10px;
+    border-radius: 11px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+}
+
+.room-pill__dot {
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 3px;
+    background-color: #00F08A;
+}
+
+.room-pill__label {
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    letter-spacing: 1px;
+    -unity-font-style: bold;
+    color: #F2F4F7;
+}
+
+.skip-button {
+    display: none;
+    height: 22px;
+    margin: 0;
+    padding: 0 10px;
+    border-radius: 11px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+    font-size: 10px;
+    letter-spacing: 1px;
+    -unity-font-style: bold;
+    color: #F2F4F7;
+    transition-duration: 0.15s;
+}
+
+.skip-button--visible {
+    display: flex;
+}
+
+.skip-button:hover {
+    border-color: #3A4352;
+    background-color: #1C2230;
+}
+
+/* ---------- Tarjeta del tiempo ---------- */
+
+.timer-card {
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 14px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+}
+
+.timer-card--finished {
+    border-color: rgba(255, 92, 108, 0.6);
+}
+
+.timer-card__top {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.timer-card__caption {
+    flex-direction: row;
+    align-items: center;
+}
+
+.timer-card__icon {
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    background-image: url("project://database/Assets/UI/Screens/Room/Icons/timer.png");
+    -unity-background-image-tint-color: #00F08A;
+}
+
+.timer-card__caption-label {
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #8A93A3;
+}
+
+.punishment-tag {
+    flex-direction: row;
+    align-items: center;
+}
+
+.punishment-tag__icon {
+    width: 11px;
+    height: 11px;
+    margin-right: 4px;
+    -unity-background-image-tint-color: #F5B544;
+}
+
+.punishment-tag__icon--pay_dinner {
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/utensils.png");
+}
+
+.punishment-tag__icon--post_tiktok {
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/video.png");
+}
+
+.punishment-tag__icon--buy_coffee {
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/coffee.png");
+}
+
+.punishment-tag__icon--wear_outfit {
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/shirt.png");
+}
+
+.punishment-tag__icon--sing_karaoke {
+    background-image: url("project://database/Assets/UI/Screens/CreateRoom/Icons/mic.png");
+}
+
+.punishment-tag__label {
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    color: #F5B544;
+}
+
+.timer-card__value {
+    margin: 10px 0 0 0;
+    padding: 0;
+    font-size: 19px;
+    -unity-font-style: bold;
+    white-space: normal;
+    color: #F2F4F7;
+}
+
+/* ---------- Standings ---------- */
+
+.standings-header {
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 20px 0 8px 0;
+}
+
+.standings-header__label {
+    margin: 0;
+    padding: 0;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: #8A93A3;
+}
+
+.standings {
+    flex-grow: 1;
+}
+
+.player-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 12px;
+    border-radius: 14px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+}
+
+.player-row--you {
+    border-color: rgba(0, 240, 138, 0.5);
+    background-color: #0F1916;
+}
+
+.player-row--distracted {
+    border-color: rgba(255, 92, 108, 0.6);
+    background-color: #1A1115;
+}
+
+.player-row--loser {
+    border-color: #FF5C6C;
+}
+
+.player-row__rank {
+    width: 24px;
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #00F08A;
+}
+
+.player-row--distracted .player-row__rank {
+    color: #FF5C6C;
+}
+
+/* Avatar con iniciales */
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 17px;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar--c0 { background-color: #3B82F6; }
+.avatar--c1 { background-color: #10B981; }
+.avatar--c2 { background-color: #F97316; }
+.avatar--c3 { background-color: #8B5CF6; }
+.avatar--c4 { background-color: #EC4899; }
+.avatar--c5 { background-color: #EAB308; }
+
+.avatar__initials {
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #FFFFFF;
+}
+
+.avatar__dot {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 11px;
+    height: 11px;
+    border-radius: 6px;
+    border-width: 2px;
+    border-color: #131821;
+    background-color: #00F08A;
+}
+
+.player-row--distracted .avatar__dot {
+    background-color: #FF5C6C;
+}
+
+.player-row__info {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-left: 10px;
+}
+
+.player-row__name-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.player-row__name {
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #F2F4F7;
+}
+
+.you-badge {
+    margin: 0 0 0 6px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background-color: rgba(0, 240, 138, 0.15);
+    font-size: 8px;
+    -unity-font-style: bold;
+    color: #00F08A;
+}
+
+.player-row__status-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 3px;
+}
+
+.player-row__status-icon {
+    width: 10px;
+    height: 10px;
+    margin-right: 4px;
+    background-image: url("project://database/Assets/UI/Screens/Room/Icons/shield-check.png");
+    -unity-background-image-tint-color: #00F08A;
+}
+
+.player-row--distracted .player-row__status-icon {
+    background-image: url("project://database/Assets/UI/Screens/Room/Icons/alert.png");
+    -unity-background-image-tint-color: #FF5C6C;
+}
+
+.player-row__status {
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    color: #00F08A;
+}
+
+.player-row--distracted .player-row__status {
+    color: #FF5C6C;
+}
+
+.player-row__total {
+    align-items: flex-end;
+}
+
+.player-row__total-caption {
+    margin: 0;
+    padding: 0;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: #5C6573;
+}
+
+.player-row__total-value {
+    margin: 2px 0 0 0;
+    padding: 0;
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: #F2F4F7;
+}
+
+.player-row--distracted .player-row__total-value {
+    color: #FF5C6C;
+}
+
+.empty-label {
+    margin-top: 20px;
+    font-size: 12px;
+    -unity-text-align: middle-center;
+    color: #5C6573;
+}

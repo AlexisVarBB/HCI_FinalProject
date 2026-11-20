@@ -1,44 +1,49 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Firebase;
-using Firebase.Database;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace DetoxBet.Services
 {
-    public class UserInUseException : Exception
+    public class GoogleSignInException : Exception
     {
-        public UserInUseException(string name) : base($"El usuario \"{name}\" ya está en uso.") { }
+        public string Code { get; }
+        public GoogleSignInException(string code) : base(code) { Code = code; }
+        public bool Cancelled => Code == "auth/popup-closed-by-user" || Code == "auth/cancelled-popup-request";
     }
 
     /// <summary>
-    /// Inicio de sesión por nombre en Realtime Database:
-    /// users/{nombre}/status  = "online" | "offline"
-    /// users/{nombre}/last_login = hora del servidor
+    /// Sesión de la app. Dos formas de entrar, el mismo resultado:
+    ///   • Nombre de usuario → cuenta anónima de Firebase.
+    ///   • Google            → cuenta de Google (solo build web).
+    /// Ambas dan un uid; las reglas de Firebase solo dejan escribir users/{uid} a ese uid.
     ///
-    /// Un nombre "online" no puede usarse en otro dispositivo.
-    /// Cuando la app se cierra o pierde conexión, el servidor lo regresa a "offline".
+    /// users/{uid}/name          → nombre que se muestra (de Google solo se guarda el nombre)
+    /// users/{uid}/provider      → "anonymous" | "google"
+    /// users/{uid}/current_room  → sala en la que está (para reanudar)
+    ///
+    /// Vive en el GameObject "AppBootstrap": JavaScript le manda el resultado de Google por SendMessage.
     /// </summary>
     public class FirebaseLoginService : MonoBehaviour
     {
-        public const string DefaultDatabaseUrl = "https://detoxbet-32aba-default-rtdb.firebaseio.com/";
-
-        const string Users = "users";
-        const string Status = "status";
-        const string Online = "online";
-        const string Offline = "offline";
-        const string LastLogin = "last_login";
-
-        [SerializeField] string databaseUrl = DefaultDatabaseUrl;
-
         public static FirebaseLoginService Instance { get; private set; }
-        public string UserName { get; private set; }
-        public bool IsLoggedIn => m_UserRef != null;
 
-        DatabaseReference m_Root;
-        DatabaseReference m_UserRef;
-        Task m_InitTask;
+        public string UserName { get; private set; }
+        public string Uid => FirebaseAuthService.Uid;
+        public bool IsLoggedIn => FirebaseAuthService.IsSignedIn && !string.IsNullOrEmpty(UserName);
+
+        /// <summary>Google solo funciona en el build web (necesita la ventana del navegador).</summary>
+        public static bool GoogleAvailable =>
+#if UNITY_WEBGL && !UNITY_EDITOR
+            true;
+#else
+            false;
+#endif
+
+        string UserPath => $"users/{Uid}";
+        TaskCompletionSource<string> m_GoogleResult;
 
         public static FirebaseLoginService GetOrCreate()
         {
@@ -59,92 +64,129 @@ namespace DetoxBet.Services
             DontDestroyOnLoad(gameObject);
         }
 
-        public Task InitializeAsync() => m_InitTask ??= InitInternalAsync();
-
-        async Task InitInternalAsync()
-        {
-            var status = await FirebaseApp.CheckAndFixDependenciesAsync();
-            if (status != DependencyStatus.Available)
-            {
-                m_InitTask = null;
-                throw new Exception($"Firebase no disponible: {status}");
-            }
-
-            var db = string.IsNullOrWhiteSpace(databaseUrl)
-                ? FirebaseDatabase.DefaultInstance
-                : FirebaseDatabase.GetInstance(databaseUrl);
-
-            m_Root = db.RootReference;
-        }
+        // ---------- Reanudar ----------
 
         /// <summary>
-        /// Reclama el nombre de forma atómica (transacción): si ya está "online"
-        /// lanza UserInUseException; si no, lo marca "online".
+        /// Al abrir la app: si este dispositivo ya tenía sesión, la recupera (mismo uid) y su nombre.
+        /// true = ya está dentro, no hay que mostrar el login.
         /// </summary>
-        public async Task LoginAsync(string name)
+        public async Task<bool> TryResumeAsync()
         {
-            await InitializeAsync();
+            if (!await FirebaseAuthService.RestoreAsync()) return false;
+            await FirebaseRest.SyncClockAsync();
 
-            if (IsLoggedIn && name == UserName) return;
-            if (IsLoggedIn) await LogoutAsync();
+            var user = await FirebaseRest.GetAsync(UserPath);
+            string name = user.Str("name");
+            if (string.IsNullOrEmpty(name)) return false; // tenía sesión pero nunca eligió nombre
 
-            var userRef = m_Root.Child(Users).Child(name);
-            var statusRef = userRef.Child(Status);
+            UserName = name;
+            return true;
+        }
 
-            // Se registra antes de reclamar, para no quedar "online" si se corta la conexión a la mitad.
-            await statusRef.OnDisconnect().SetValue(Offline);
+        // ---------- Opción 1: nombre de usuario ----------
 
-            bool inUse = false;
+        public async Task LoginWithNameAsync(string name)
+        {
+            // Si ya hay una sesión de Google activa en este dispositivo, se cierra para entrar como anónimo.
+            if (FirebaseAuthService.IsSignedIn && FirebaseAuthService.Provider != FirebaseAuthService.ProviderAnonymous)
+                FirebaseAuthService.SignOut();
+
+            if (!FirebaseAuthService.IsSignedIn) await FirebaseAuthService.SignInAnonymouslyAsync();
+            await FirebaseRest.SyncClockAsync();
+
+            await SaveProfileAsync(name);
+        }
+
+        // ---------- Opción 2: Google ----------
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // Plugins/WebGL/DetoxGoogleAuth.jslib
+        [DllImport("__Internal")]
+        static extern void DetoxGoogleArm(string apiKey, string authDomain, string gameObjectName, string methodName);
+#endif
+
+        /// <summary>
+        /// Prepara el inicio con Google. Hay que llamarlo en el PointerDown del botón:
+        /// el navegador solo permite abrir la ventana de Google dentro del gesto del usuario,
+        /// así que JavaScript la abre al soltar el dedo/clic.
+        /// La tarea termina con el nombre del usuario.
+        /// </summary>
+        public Task<string> BeginGoogleSignIn()
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            m_GoogleResult?.TrySetCanceled();
+            m_GoogleResult = new TaskCompletionSource<string>();
+            DetoxGoogleArm(FirebaseConfig.ApiKey, FirebaseConfig.AuthDomain, gameObject.name, nameof(OnGoogleResult));
+            return m_GoogleResult.Task;
+#else
+            return Task.FromException<string>(new NotSupportedException("Google solo está disponible en el build web."));
+#endif
+        }
+
+        /// <summary>Lo llama JavaScript con el resultado de la ventana de Google (JSON).</summary>
+        public async void OnGoogleResult(string json)
+        {
+            var pending = m_GoogleResult;
+            m_GoogleResult = null;
+            if (pending == null) return;
+
             try
             {
-                await statusRef.RunTransaction(data =>
-                {
-                    inUse = (data.Value as string) == Online;
-                    if (inUse) return TransactionResult.Abort();
-                    data.Value = Online;
-                    return TransactionResult.Success(data);
-                });
+                var result = JObject.Parse(json);
+                string error = result.Value<string>("error");
+                if (!string.IsNullOrEmpty(error)) throw new GoogleSignInException(error);
+
+                FirebaseAuthService.SetGoogleSession(
+                    result.Value<string>("uid"),
+                    result.Value<string>("idToken"),
+                    result.Value<string>("refreshToken"),
+                    result.Value<long>("expiresIn"));
+                await FirebaseRest.SyncClockAsync();
+
+                // Si ya había entrado antes con esta cuenta, conserva su nombre; si no, usa el de Google.
+                var existing = await FirebaseRest.GetAsync(UserPath);
+                string name = existing.Str("name");
+                if (string.IsNullOrEmpty(name)) name = result.Value<string>("name");
+                if (string.IsNullOrEmpty(name)) name = "Player";
+
+                await SaveProfileAsync(name);
+                pending.TrySetResult(name);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // Algunas versiones del SDK lanzan excepción al abortar; si no fue por eso, se propaga.
-                if (!inUse)
-                {
-                    await statusRef.OnDisconnect().Cancel();
-                    throw;
-                }
+                pending.TrySetException(e);
             }
+        }
 
-            if (inUse)
+        // ---------- Perfil y sala actual ----------
+
+        async Task SaveProfileAsync(string name)
+        {
+            await FirebaseRest.PatchAsync(UserPath, new Dictionary<string, object>
             {
-                // Importante: no dejar el OnDisconnect, o al salir marcaría offline al otro dispositivo.
-                await statusRef.OnDisconnect().Cancel();
-                throw new UserInUseException(name);
-            }
-
-            await userRef.Child(LastLogin).SetValueAsync(ServerValue.Timestamp);
-
-            m_UserRef = userRef;
+                { "name", name },
+                { "provider", FirebaseAuthService.Provider },
+                { "last_login", FirebaseRest.ServerTimestamp }
+            });
             UserName = name;
         }
 
-        /// <summary>Libera el nombre (status = offline).</summary>
-        public async Task LogoutAsync()
-        {
-            if (m_UserRef == null) return;
+        public async Task<string> GetCurrentRoomAsync() =>
+            (await FirebaseRest.GetAsync(UserPath)).Str("current_room");
 
-            var statusRef = m_UserRef.Child(Status);
-            m_UserRef = null;
+        public Task SetCurrentRoomAsync(string code) =>
+            FirebaseRest.PatchAsync(UserPath, new Dictionary<string, object> { { "current_room", code } });
+
+        public Task ClearCurrentRoomAsync() => FirebaseRest.DeleteAsync($"{UserPath}/current_room");
+
+        // ---------- Salir ----------
+
+        /// <summary>Cierra sesión en este dispositivo. Con nombre de usuario, esa cuenta anónima ya no se recupera.</summary>
+        public Task LogoutAsync()
+        {
             UserName = null;
-
-            await statusRef.SetValueAsync(Offline);
-            await statusRef.OnDisconnect().Cancel();
-        }
-
-        void OnApplicationQuit()
-        {
-            // Incluye detener Play en el Editor. Si no alcanza a enviarse, OnDisconnect lo cubre.
-            if (IsLoggedIn) _ = LogoutAsync();
+            FirebaseAuthService.SignOut();
+            return Task.CompletedTask;
         }
     }
 }

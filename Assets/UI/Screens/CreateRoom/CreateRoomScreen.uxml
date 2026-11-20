@@ -1,4 +1,4 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements">
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:dt="DetoxBet.UI">
     <ui:Style src="CreateRoomScreen.uss" />
     <ui:VisualElement name="createRoomScreen" class="screen">
 
@@ -9,6 +9,8 @@
             <ui:Label text="Set up your Detox Room" class="header__title" />
         </ui:VisualElement>
 
+        <ui:VisualElement name="body" class="body">
+        <ui:VisualElement name="settingsColumn" class="col col--settings">
         <!-- Duración -->
         <ui:Label text="CHALLENGE DURATION" class="section-label" />
         <ui:VisualElement name="durationSelect" class="select">
@@ -47,6 +49,8 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
+        </ui:VisualElement>
+        <ui:VisualElement name="punishmentsColumn" class="col col--punishments">
         <!-- Castigos -->
         <ui:VisualElement class="section-row">
             <ui:Label text="CHOOSE THE LOSER'S PUNISHMENT" class="section-label" />
@@ -120,12 +124,30 @@
             </ui:VisualElement>
 
         </ui:ScrollView>
+        </ui:VisualElement>
+        </ui:VisualElement>
 
         <ui:Button name="generateButton" class="generate-button">
             <ui:VisualElement class="generate-button__icon" picking-mode="Ignore" />
             <ui:Label name="generateLabel" text="Generate Room Code" class="generate-button__label" picking-mode="Ignore" />
         </ui:Button>
         <ui:Label name="statusLabel" class="status-label" />
+
+        <!-- Ventana "Room Ready" (se muestra al generar el código) -->
+        <ui:VisualElement name="codeModal" class="modal">
+            <dt:RadialGlow class="modal__glow" picking-mode="Ignore" />
+            <ui:VisualElement class="modal__card">
+                <ui:Label text="ROOM READY" class="modal__badge" />
+                <ui:Label text="Share this 4-character code" class="modal__title" />
+                <ui:VisualElement name="codeDisplay" class="modal__code-box">
+                    <ui:Label name="roomCodeLabel" text="----" class="modal__code" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:Label name="copyHint" text="Tap the code to copy" class="modal__hint" />
+                <ui:Label name="playersLabel" text="Waiting for friends..." class="modal__players" />
+                <ui:Button name="enterRoomButton" text="Enter Room Now" class="modal__button" />
+                <ui:Label text="No one can join after you enter" class="modal__note" />
+            </ui:VisualElement>
+        </ui:VisualElement>
 
     </ui:VisualElement>
 </ui:UXML>

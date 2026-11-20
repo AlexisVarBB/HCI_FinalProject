@@ -1,0 +1,50 @@
+/* Opción "Continue with Google" en el Login */
+
+.google-section--hidden {
+    display: none;
+}
+
+.divider {
+    flex-direction: row;
+    align-items: center;
+    margin: 16px 0;
+}
+
+.divider__line {
+    flex-grow: 1;
+    height: 1px;
+    background-color: #262D38;
+}
+
+.divider__label {
+    margin: 0 12px;
+    padding: 0;
+    font-size: 11px;
+    color: #5C6573;
+}
+
+.google-button {
+    height: 48px;
+    margin: 0;
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: #F2F4F7;
+    transition-duration: 0.15s;
+}
+
+.google-button:hover {
+    border-color: #3A4352;
+    background-color: #1C2230;
+}
+
+.google-button:active {
+    scale: 0.98 0.98;
+}
+
+.google-button:disabled {
+    opacity: 0.6;
+}

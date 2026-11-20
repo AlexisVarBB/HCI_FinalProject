@@ -2,21 +2,15 @@ using System;
 using System.Collections.Generic;
 using DetoxBet.Services;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UIElements;
 
 namespace DetoxBet.UI
 {
-    [RequireComponent(typeof(UIDocument))]
-    public class CreateRoomController : MonoBehaviour
+    public class CreateRoomController : ScreenController
     {
         public const string RoomCodeKey = "detoxbet_room_code";
-
-        [Tooltip("Al presionar la flecha de regresar (ej. ocultar esta pantalla y mostrar MenuUI).")]
-        public UnityEvent onBack;
-
-        [Tooltip("Se invoca con el código de la sala cuando se creó en Firebase.")]
-        public UnityEvent<string> onRoomCreated;
+        public event Action onBack;
+        public event Action<string> onRoomCreated;
 
         enum Unit { Hours, Days, Weeks, Months }
 
@@ -65,6 +59,9 @@ namespace DetoxBet.UI
         const string StatusVisible = "status-label--visible";
         const string StatusError = "status-label--error";
         const string StatusSuccess = "status-label--success";
+        const string ModalVisible = "modal--visible";
+        const string HintCopied = "modal__hint--copied";
+        const string CopyHintText = "Tap the code to copy";
 
         VisualElement m_BackButton;
         VisualElement m_DurationSelect;
@@ -80,7 +77,15 @@ namespace DetoxBet.UI
         Button m_GenerateButton;
         Label m_GenerateLabel;
         Label m_StatusLabel;
+        VisualElement m_CodeModal;
+        VisualElement m_CodeDisplay;
+        Label m_RoomCodeLabel;
+        Label m_CopyHint;
+        Button m_EnterRoomButton;
+        Label m_PlayersLabel;
+        int m_WatchId;
 
+        string m_CreatedCode;
         int m_PresetIndex = DefaultPreset;
         Unit m_CustomUnit = Unit.Days;
         string m_Punishment = "pay_dinner";
@@ -88,9 +93,8 @@ namespace DetoxBet.UI
         string m_GenerateText;
         bool m_Busy;
 
-        void OnEnable()
+        public override void OnShow(VisualElement root)
         {
-            var root = GetComponent<UIDocument>().rootVisualElement;
 
             m_BackButton = root.Q("backButton");
             m_DurationSelect = root.Q("durationSelect");
@@ -103,6 +107,13 @@ namespace DetoxBet.UI
             m_GenerateLabel = root.Q<Label>("generateLabel");
             m_StatusLabel = root.Q<Label>("statusLabel");
             m_GenerateText = m_GenerateLabel.text;
+
+            m_CodeModal = root.Q("codeModal");
+            m_CodeDisplay = root.Q("codeDisplay");
+            m_RoomCodeLabel = root.Q<Label>("roomCodeLabel");
+            m_CopyHint = root.Q<Label>("copyHint");
+            m_EnterRoomButton = root.Q<Button>("enterRoomButton");
+            m_PlayersLabel = root.Q<Label>("playersLabel");
 
             m_UnitItems[Unit.Hours] = root.Q<Label>("unitHours");
             m_UnitItems[Unit.Days] = root.Q<Label>("unitDays");
@@ -137,11 +148,13 @@ namespace DetoxBet.UI
             m_PunishmentScroll.RegisterCallback<PointerDownEvent>(OnScrollPointerDown, TrickleDown.TrickleDown);
 
             m_GenerateButton.clicked += OnGenerateClicked;
+            m_CodeDisplay.RegisterCallback<ClickEvent>(OnCodeClicked);
+            m_EnterRoomButton.clicked += OnEnterRoomClicked;
 
             ResetForm();
         }
 
-        void OnDisable()
+        public override void OnHide()
         {
             m_BackButton?.UnregisterCallback<ClickEvent>(OnBackClicked);
             m_DurationSelect?.UnregisterCallback<ClickEvent>(OnSelectClicked);
@@ -150,6 +163,9 @@ namespace DetoxBet.UI
             foreach (var card in m_AppCards) card.UnregisterCallback<ClickEvent>(OnAppClicked);
             foreach (var card in m_PunishmentCards) card.UnregisterCallback<ClickEvent>(OnPunishmentClicked);
             if (m_GenerateButton != null) m_GenerateButton.clicked -= OnGenerateClicked;
+            m_CodeDisplay?.UnregisterCallback<ClickEvent>(OnCodeClicked);
+            if (m_EnterRoomButton != null) m_EnterRoomButton.clicked -= OnEnterRoomClicked;
+            StopWatchingPlayers();
             // Los callbacks de unidades son lambdas; se descartan al reconstruir el árbol.
         }
 
@@ -163,6 +179,7 @@ namespace DetoxBet.UI
             foreach (var card in m_AppCards) card.AddToClassList(AppOn);
             m_PunishmentScroll.scrollOffset = Vector2.zero;
             HideStatus();
+            HideCodeModal();
             SetBusy(false);
         }
 
@@ -307,10 +324,7 @@ namespace DetoxBet.UI
                 return;
             }
 
-            string host = FirebaseLoginService.Instance != null && FirebaseLoginService.Instance.IsLoggedIn
-                ? FirebaseLoginService.Instance.UserName
-                : PlayerPrefs.GetString(LoginController.UserNameKey, "");
-            if (string.IsNullOrEmpty(host))
+            if (FirebaseLoginService.Instance == null || !FirebaseLoginService.Instance.IsLoggedIn)
             {
                 ShowStatus("Inicia sesión primero.", StatusError);
                 return;
@@ -329,13 +343,13 @@ namespace DetoxBet.UI
             SetBusy(true);
             try
             {
-                string code = await FirebaseRoomService.CreateRoomAsync(host, config);
+                string code = await FirebaseRoomService.CreateRoomAsync(config);
 
                 PlayerPrefs.SetString(RoomCodeKey, code);
                 PlayerPrefs.Save();
 
-                ShowStatus($"Room code: {code}", StatusSuccess);
-                onRoomCreated?.Invoke(code);
+                HideStatus();
+                ShowCodeModal(code);
             }
             catch (Exception e)
             {
@@ -345,6 +359,83 @@ namespace DetoxBet.UI
             finally
             {
                 SetBusy(false);
+            }
+        }
+
+        // ---------- Ventana Room Ready ----------
+
+        void ShowCodeModal(string code)
+        {
+            m_CreatedCode = code;
+            m_RoomCodeLabel.text = code;
+            m_CopyHint.text = CopyHintText;
+            m_CopyHint.RemoveFromClassList(HintCopied);
+            m_PlayersLabel.text = "Waiting for friends...";
+            m_EnterRoomButton.SetEnabled(true);
+            m_EnterRoomButton.text = "Enter Room Now";
+            m_CodeModal.AddToClassList(ModalVisible);
+            WatchPlayers(code);
+        }
+
+        void HideCodeModal()
+        {
+            StopWatchingPlayers();
+            m_CreatedCode = null;
+            m_CodeModal.RemoveFromClassList(ModalVisible);
+        }
+
+        // Consulta cada 1.5 s quién va entrando con el código.
+        async void WatchPlayers(string code)
+        {
+            int id = ++m_WatchId;
+            while (id == m_WatchId && m_CreatedCode == code)
+            {
+                try
+                {
+                    var names = await FirebaseRoomService.GetPlayerNamesAsync(code);
+                    if (id != m_WatchId || m_PlayersLabel == null) return;
+                    m_PlayersLabel.text = names.Count <= 1
+                        ? "Waiting for friends..."
+                        : $"{names.Count} players in the room: {string.Join(", ", names)}";
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"[DetoxBet] No se pudo leer a los jugadores: {e.Message}");
+                }
+                await Awaitable.WaitForSecondsAsync(1.5f);
+            }
+        }
+
+        void StopWatchingPlayers() => m_WatchId++;
+
+        void OnCodeClicked(ClickEvent _)
+        {
+            if (string.IsNullOrEmpty(m_CreatedCode)) return;
+            GUIUtility.systemCopyBuffer = m_CreatedCode;
+            m_CopyHint.text = "Copied!";
+            m_CopyHint.AddToClassList(HintCopied);
+        }
+
+        // Cierra la sala (status "active", empieza el reloj) y pasa a la pantalla Room.
+        async void OnEnterRoomClicked()
+        {
+            string code = m_CreatedCode;
+            if (string.IsNullOrEmpty(code)) return;
+
+            m_EnterRoomButton.SetEnabled(false);
+            m_EnterRoomButton.text = "Starting...";
+            try
+            {
+                await FirebaseRoomService.StartChallengeAsync(code);
+                HideCodeModal();
+                onRoomCreated?.Invoke(code);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[DetoxBet] Error al iniciar el reto: {e}");
+                m_EnterRoomButton.SetEnabled(true);
+                m_EnterRoomButton.text = "Enter Room Now";
+                m_PlayersLabel.text = "No se pudo iniciar. Intenta de nuevo.";
             }
         }
 

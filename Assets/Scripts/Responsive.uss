@@ -1,0 +1,145 @@
+/*
+ * Responsive.uss — reglas para escritorio.
+ * ScreenManager agrega la clase .app-frame--wide al marco cuando la ventana es ancha.
+ * Sin esa clase (celular) las pantallas se ven exactamente como en sus propios USS.
+ */
+
+/* ===== Contenedores de columnas (aplican siempre) ===== */
+
+#createRoomScreen .body,
+#roomScreen .body {
+    flex-grow: 1;
+}
+
+#createRoomScreen .col--punishments,
+#roomScreen .col--standings {
+    flex-grow: 1;
+}
+
+/* ===== Común en escritorio ===== */
+
+.app-frame--wide .screen {
+    padding: 28px 48px;
+}
+
+/* ===== Login: logo y formulario juntos al centro ===== */
+
+.app-frame--wide #loginScreen {
+    justify-content: center;
+}
+
+.app-frame--wide #loginScreen .brand {
+    flex-grow: 0;
+}
+
+.app-frame--wide #loginScreen .form {
+    align-self: center;
+    width: 400px;
+    margin-top: 40px;
+    padding: 0;
+}
+
+/* ===== Menu: tarjetas lado a lado ===== */
+
+.app-frame--wide #menuScreen .greeting {
+    margin-top: 40px;
+    font-size: 30px;
+}
+
+.app-frame--wide #menuScreen .cards {
+    flex-direction: row;
+    align-items: center;
+}
+
+.app-frame--wide #menuScreen .card {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-height: 240px;
+    margin: 0 8px;
+}
+
+/* ===== Create Room: ajustes a la izquierda, castigos a la derecha ===== */
+
+.app-frame--wide #createRoomScreen .body {
+    flex-direction: row;
+}
+
+.app-frame--wide #createRoomScreen .col--settings {
+    width: 46%;
+    margin-right: 32px;
+}
+
+.app-frame--wide #createRoomScreen .generate-button {
+    align-self: center;
+    width: 420px;
+    margin-top: 20px;
+}
+
+.app-frame--wide #createRoomScreen .modal__card {
+    align-self: center;
+    width: 420px;
+}
+
+/* ===== Join Room: cajas más grandes, botón centrado ===== */
+
+.app-frame--wide #joinRoomScreen .code-box {
+    width: 58px;
+    height: 68px;
+    margin: 0 6px;
+}
+
+.app-frame--wide #joinRoomScreen .code-box__char {
+    font-size: 26px;
+}
+
+.app-frame--wide #joinRoomScreen .join-button {
+    align-self: center;
+    width: 420px;
+}
+
+/* ===== Room: tiempo a la izquierda, marcador a la derecha ===== */
+
+.app-frame--wide #roomScreen .body {
+    flex-direction: row;
+    margin-top: 12px;
+}
+
+.app-frame--wide #roomScreen .col--timer {
+    width: 340px;
+    margin-right: 32px;
+}
+
+.app-frame--wide #roomScreen .timer-card {
+    margin-top: 0;
+}
+
+.app-frame--wide #roomScreen .standings-header {
+    margin-top: 0;
+}
+
+/* ===== Final: ganador y perdedor lado a lado ===== */
+
+.app-frame--wide #finalScreen .hero {
+    margin-top: 48px;
+}
+
+.app-frame--wide #finalScreen .results {
+    flex-direction: row;
+}
+
+.app-frame--wide #finalScreen .result-card {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin: 0 6px 12px 6px;
+}
+
+.app-frame--wide #finalScreen .verdict-card {
+    align-self: center;
+    width: 600px;
+}
+
+.app-frame--wide #finalScreen .new-challenge-button {
+    align-self: center;
+    width: 420px;
+    margin: 0 0 8px 0;
+}

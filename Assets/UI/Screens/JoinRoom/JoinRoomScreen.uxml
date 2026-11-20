@@ -1,0 +1,39 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="JoinRoomScreen.uss" />
+    <ui:VisualElement name="joinRoomScreen" class="screen">
+
+        <ui:VisualElement class="header">
+            <ui:VisualElement name="backButton" class="back-button">
+                <ui:VisualElement class="back-button__icon" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label text="Join your friends" class="header__title" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="content">
+            <ui:VisualElement class="hash-box">
+                <ui:VisualElement class="hash-box__icon" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label text="Enter the 4-character room code shared by your host." class="hint" />
+
+            <ui:VisualElement name="codeRow" class="code-row">
+                <ui:VisualElement class="code-box" picking-mode="Ignore">
+                    <ui:Label name="codeChar0" class="code-box__char" />
+                </ui:VisualElement>
+                <ui:VisualElement class="code-box" picking-mode="Ignore">
+                    <ui:Label name="codeChar1" class="code-box__char" />
+                </ui:VisualElement>
+                <ui:VisualElement class="code-box" picking-mode="Ignore">
+                    <ui:Label name="codeChar2" class="code-box__char" />
+                </ui:VisualElement>
+                <ui:VisualElement class="code-box" picking-mode="Ignore">
+                    <ui:Label name="codeChar3" class="code-box__char" />
+                </ui:VisualElement>
+                <ui:TextField name="codeInput" max-length="4" class="code-input" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:Label name="statusLabel" class="status-label" />
+        <ui:Button name="joinButton" text="Join Room" class="join-button" />
+
+    </ui:VisualElement>
+</ui:UXML>

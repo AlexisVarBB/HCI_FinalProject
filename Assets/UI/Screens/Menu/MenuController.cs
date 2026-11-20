@@ -1,22 +1,15 @@
 using System;
 using DetoxBet.Services;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UIElements;
 
 namespace DetoxBet.UI
 {
-    [RequireComponent(typeof(UIDocument))]
-    public class MenuController : MonoBehaviour
+    public class MenuController : ScreenController
     {
-        [Tooltip("Al cerrar sesión (ej. ocultar MenuUI y mostrar LoginUI).")]
-        public UnityEvent onLoggedOut;
-
-        [Tooltip("Al tocar la tarjeta 'Create a Room'.")]
-        public UnityEvent onCreateRoom;
-
-        [Tooltip("Al tocar la tarjeta 'Join a Room'.")]
-        public UnityEvent onJoinRoom;
+        public event Action onLoggedOut;
+        public event Action onCreateRoom;
+        public event Action onJoinRoom;
 
         const string Accent = "#00F08A";
 
@@ -27,9 +20,8 @@ namespace DetoxBet.UI
         VisualElement m_JoinRoomCard;
         bool m_Busy;
 
-        void OnEnable()
+        public override void OnShow(VisualElement root)
         {
-            var root = GetComponent<UIDocument>().rootVisualElement;
             m_GreetingLabel = root.Q<Label>("greetingLabel");
             m_UserNameLabel = root.Q<Label>("userNameLabel");
             m_LogoutButton = root.Q("logoutButton");
@@ -43,7 +35,7 @@ namespace DetoxBet.UI
             ShowUserName(GetCurrentUserName());
         }
 
-        void OnDisable()
+        public override void OnHide()
         {
             m_LogoutButton?.UnregisterCallback<ClickEvent>(OnLogoutClicked);
             m_CreateRoomCard?.UnregisterCallback<ClickEvent>(OnCreateRoomClicked);
@@ -70,6 +62,9 @@ namespace DetoxBet.UI
             m_LogoutButton.SetEnabled(false);
             try
             {
+                PlayerPrefs.DeleteKey(CreateRoomController.RoomCodeKey);
+                PlayerPrefs.Save();
+
                 var service = FirebaseLoginService.Instance;
                 if (service != null) await service.LogoutAsync();
                 onLoggedOut?.Invoke();

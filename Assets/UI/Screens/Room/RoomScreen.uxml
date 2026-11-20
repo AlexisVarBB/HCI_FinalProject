@@ -1,0 +1,42 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="RoomScreen.uss" />
+    <ui:VisualElement name="roomScreen" class="screen">
+
+        <ui:VisualElement class="top-bar">
+            <ui:VisualElement class="room-pill">
+                <ui:VisualElement class="room-pill__dot" />
+                <ui:Label name="roomCodeLabel" text="ROOM #----" class="room-pill__label" />
+            </ui:VisualElement>
+            <ui:Button name="skipButton" text="SKIP TIME" class="skip-button" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="body" class="body">
+        <ui:VisualElement name="timerColumn" class="col col--timer">
+        <ui:VisualElement name="timerCard" class="timer-card">
+            <ui:VisualElement class="timer-card__top">
+                <ui:VisualElement class="timer-card__caption">
+                    <ui:VisualElement class="timer-card__icon" />
+                    <ui:Label name="timerCaption" text="TIME LEFT" class="timer-card__caption-label" />
+                </ui:VisualElement>
+                <ui:VisualElement class="punishment-tag">
+                    <ui:VisualElement name="punishmentIcon" class="punishment-tag__icon" />
+                    <ui:Label name="punishmentLabel" text="" class="punishment-tag__label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Label name="timerValue" text="Loading..." class="timer-card__value" />
+        </ui:VisualElement>
+
+        </ui:VisualElement>
+        <ui:VisualElement name="standingsColumn" class="col col--standings">
+        <ui:VisualElement class="standings-header">
+            <ui:Label text="LIVE STANDINGS (LOWEST TIME WINS)" class="standings-header__label" />
+            <ui:Label text="DISTRACTION" class="standings-header__label" />
+        </ui:VisualElement>
+
+        <!-- Las filas de jugadores se crean desde RoomController -->
+        <ui:ScrollView name="standings" mode="Vertical" touch-scroll-type="Elastic" vertical-scroller-visibility="Hidden" horizontal-scroller-visibility="Hidden" class="standings" />
+        </ui:VisualElement>
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

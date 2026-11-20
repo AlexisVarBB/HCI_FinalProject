@@ -1,0 +1,56 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:dt="DetoxBet.UI" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Screens/Final/FinalScreen.uss?fileID=7433441132597879392&amp;guid=90891432867b58d4aae39f8e149342d3&amp;type=3#FinalScreen"/>
+    <ui:VisualElement name="finalScreen" class="screen">
+        <dt:RadialGlow picking-mode="Ignore" class="glow-top"/>
+        <dt:RadialGlow glow-color="#FF5C6C2E" picking-mode="Ignore" class="glow-bottom"/>
+        <ui:VisualElement picking-mode="Ignore" class="confetti confetti--1"/>
+        <ui:VisualElement picking-mode="Ignore" class="confetti confetti--2"/>
+        <ui:VisualElement picking-mode="Ignore" class="confetti confetti--3"/>
+        <ui:VisualElement picking-mode="Ignore" class="confetti confetti--4"/>
+        <ui:VisualElement picking-mode="Ignore" class="confetti confetti--5"/>
+        <ui:VisualElement picking-mode="Ignore" class="confetti confetti--6"/>
+        <ui:VisualElement picking-mode="Ignore" class="confetti confetti--7"/>
+        <ui:VisualElement class="hero">
+            <ui:Label text="CHALLENGE COMPLETE" class="badge"/>
+            <ui:Label text="Final Verdict" class="title"/>
+        </ui:VisualElement>
+        <ui:VisualElement class="results">
+            <ui:VisualElement name="winnerCard" class="result-card result-card--winner">
+                <ui:VisualElement class="result-card__icon-box">
+                    <ui:VisualElement class="result-card__icon result-card__icon--trophy"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="result-card__info">
+                    <ui:Label text="LOWEST SCREEN TIME" class="result-card__caption"/>
+                    <ui:Label name="winnerName" text="Winner: ..." class="result-card__name"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="result-card__total">
+                    <ui:Label name="winnerTotal" text="--" class="result-card__total-value"/>
+                    <ui:Label text="TOTAL" class="result-card__total-caption"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="loserCard" class="result-card result-card--loser">
+                <ui:VisualElement class="result-card__icon-box">
+                    <ui:VisualElement class="result-card__icon result-card__icon--skull"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="result-card__info">
+                    <ui:Label text="HIGHEST SCREEN TIME" class="result-card__caption"/>
+                    <ui:Label name="loserName" text="Loser: ..." class="result-card__name"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="result-card__total">
+                    <ui:Label name="loserTotal" text="--" class="result-card__total-value"/>
+                    <ui:Label text="TOTAL" class="result-card__total-caption"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="verdictCard" class="verdict-card">
+            <ui:VisualElement class="verdict-tag">
+                <ui:VisualElement name="verdictIcon" class="verdict-tag__icon"/>
+                <ui:Label name="verdictTag" text="THE VERDICT" class="verdict-tag__label"/>
+            </ui:VisualElement>
+            <ui:Label name="punishmentText" text="Loading..." class="verdict-card__punishment"/>
+            <ui:Label name="verdictDesc" text="" class="verdict-card__desc"/>
+        </ui:VisualElement>
+        <ui:VisualElement class="spacer"/>
+        <ui:Button name="newChallengeButton" text="Start a new challenge" class="new-challenge-button"/>
+    </ui:VisualElement>
+</ui:UXML>
