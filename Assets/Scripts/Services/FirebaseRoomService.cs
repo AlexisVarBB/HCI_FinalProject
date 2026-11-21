@@ -27,13 +27,13 @@ namespace DetoxBet.Services
     /// <summary>
     /// Salas en Realtime Database (REST), misma estructura de siempre:
     /// rooms/{CÓDIGO}/settings/{duration, duration_seconds, punishment, target_apps, host, host_uid, status, created_at, started_at, finished_at}
-    /// rooms/{CÓDIGO}/users/{uid}/{name, status, current_session_start, last_session_end, counted_end, total_seconds, joined_at}
+    /// rooms/{CÓDIGO}/users/{uid}/{name, status, joined_at}   (los tiempos salen de ShortcutService, no se guardan aquí)
     ///
     /// Cada jugador se identifica por su uid (Firebase Auth); "name" es solo para mostrar.
     /// Todas las operaciones actúan sobre el usuario con sesión iniciada.
     ///
     /// settings/status: "waiting" (se puede entrar) → "active" (reto en curso) → "finished"
-    /// users/x/status:  "focusing" (dentro de la app) | "distracted" (fuera de la app)
+    /// users/x/status:  campo antiguo, ya no se usa para medir distracción
     /// </summary>
     public static class FirebaseRoomService
     {
@@ -172,57 +172,8 @@ namespace DetoxBet.Services
         /// <summary>Sale de la sala (deja de ser su sala actual).</summary>
         public static Task LeaveRoomAsync() => Session.ClearCurrentRoomAsync();
 
-        // ---------- Tiempo de distracción ----------
-
-        /// <summary>El jugador salió de la app / cambió de pestaña.</summary>
-        public static Task MarkDistractedAsync(string code, long nowMs) =>
-            FirebaseRest.PatchAsync(UserPath(code, MyUid), new Dictionary<string, object>
-            {
-                { "status", UserDistracted },
-                { "current_session_start", nowMs }
-            });
-
-        static bool s_Focusing;
-
-        /// <summary>
-        /// El jugador regresó: suma la sesión a total_seconds (solo la parte dentro del reto)
-        /// y vuelve a "focusing". Solo el propio jugador escribe su nodo, y no se permiten
-        /// dos llamadas a la vez, así que no se cuenta dos veces.
-        /// </summary>
-        public static async Task MarkFocusingAsync(string code, long nowMs, long startedAt, long endsAt)
-        {
-            if (s_Focusing) return;
-            s_Focusing = true;
-            try
-            {
-                string path = UserPath(code, MyUid);
-                var user = await FirebaseRest.GetAsync(path);
-                if (user == null) return;
-
-                var update = new Dictionary<string, object> { { "status", UserFocusing } };
-
-                if (user.Str("status") == UserDistracted)
-                {
-                    long start = user.Long("current_session_start");
-                    long countedEnd = user.Long("counted_end");
-                    long total = user.Long("total_seconds");
-
-                    long from = Math.Max(start, Math.Max(startedAt, countedEnd));
-                    long to = endsAt > 0 ? Math.Min(nowMs, endsAt) : nowMs;
-                    if (startedAt > 0 && to > from) total += (to - from) / 1000;
-
-                    update["total_seconds"] = total;
-                    update["counted_end"] = nowMs;
-                    update["last_session_end"] = nowMs;
-                }
-
-                await FirebaseRest.PatchAsync(path, update);
-            }
-            finally
-            {
-                s_Focusing = false;
-            }
-        }
+        // El tiempo en TikTok / Instagram ya no se guarda aquí: lo escriben los Atajos de iOS en
+        // users/shortcut_events/{token} y ShortcutService lo convierte en minutos por app.
 
         static string GenerateCode()
         {

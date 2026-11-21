@@ -30,10 +30,13 @@ namespace DetoxBet.Services
 
         // ---------- Peticiones ----------
 
-        /// <summary>Lee una ruta. Devuelve null si no existe.</summary>
-        public static async Task<JToken> GetAsync(string path)
+        /// <summary>
+        /// Lee una ruta. Devuelve null si no existe.
+        /// "query" son parámetros extra ya codificados, p. ej. orderBy=%22%24key%22&amp;limitToLast=500
+        /// </summary>
+        public static async Task<JToken> GetAsync(string path, string query = null)
         {
-            string text = await SendAsync("GET", path, null);
+            string text = await SendAsync("GET", path, null, query);
             var token = string.IsNullOrEmpty(text) ? null : JToken.Parse(text);
             return token == null || token.Type == JTokenType.Null ? null : token;
         }
@@ -47,11 +50,15 @@ namespace DetoxBet.Services
         /// <summary>Borra la ruta.</summary>
         public static Task DeleteAsync(string path) => SendAsync("DELETE", path, null);
 
-        static async Task<string> SendAsync(string method, string path, object body)
+        static async Task<string> SendAsync(string method, string path, object body, string query = null)
         {
             string url = $"{DatabaseUrl.TrimEnd('/')}/{EscapePath(path)}.json";
             string token = await FirebaseAuthService.GetIdTokenAsync();
-            if (!string.IsNullOrEmpty(token)) url += "?auth=" + Uri.EscapeDataString(token);
+
+            var parameters = new List<string>();
+            if (!string.IsNullOrEmpty(query)) parameters.Add(query);
+            if (!string.IsNullOrEmpty(token)) parameters.Add("auth=" + Uri.EscapeDataString(token));
+            if (parameters.Count > 0) url += "?" + string.Join("&", parameters);
 
             using var request = new UnityWebRequest(url, method);
             request.downloadHandler = new DownloadHandlerBuffer();
