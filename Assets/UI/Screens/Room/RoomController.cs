@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace DetoxBet.UI
 {
     /// <summary>
-    /// Pantalla Room: consulta rooms/{código} cada 1.5 s y registra el tiempo
-    /// que el jugador pasa fuera de DetoxBet (otra pestaña / otra app) mientras el reto está activo.
+    /// Pantalla Room: consulta rooms/{código} cada 1.5 s y, durante el reto, lee los eventos que mandan los
+    /// Atajos de iOS (abrir / cerrar TikTok e Instagram) para calcular cuánto tiempo lleva cada jugador en cada app.
     /// El código se toma de PlayerPrefs (lo guardan Create Room y Join Room).
     /// </summary>
     public class RoomController : ScreenController
@@ -20,17 +20,13 @@ namespace DetoxBet.UI
         class Player
         {
             public string Id;   // uid
-            public string Name; // nombre visible
-            public string Status;
-            public long SessionStart;
-            public long CountedEnd;
-            public long TotalSeconds;
+            public string Name; // nombre visible (de aquí sale el token de sus Atajos)
         }
 
         class Row
         {
             public VisualElement Root;
-            public Label Rank, Initials, Name, Status, Total;
+            public Label Rank, Initials, Name, Status, Apps, Total;
             public VisualElement Avatar, YouBadge;
         }
 
@@ -68,7 +64,9 @@ namespace DetoxBet.UI
         long m_DurationSeconds;
         long m_FinishedAt;
         readonly List<Player> m_Players = new();
-        bool m_CheckedMyStatus;
+        // Eventos de los Atajos por jugador (uid → historial). Se conserva el último dato bueno si una lectura falla.
+        readonly Dictionary<string, JToken> m_Events = new();
+        HashSet<string> m_EnabledApps = new(AppIds.All);
         bool m_FinishRequested;
         bool m_FinishedNotified;
         int m_SubscribeId;
@@ -120,10 +118,12 @@ namespace DetoxBet.UI
 
         void ResetState()
         {
-            m_RoomLoaded = m_RoomExists = m_CheckedMyStatus = m_FinishRequested = m_FinishedNotified = false;
+            m_RoomLoaded = m_RoomExists = m_FinishRequested = m_FinishedNotified = false;
             m_RoomStatus = m_Host = m_HostId = m_Punishment = null;
             m_StartedAt = m_DurationSeconds = m_FinishedAt = 0;
             m_Players.Clear();
+            m_Events.Clear();
+            m_EnabledApps = new HashSet<string>(AppIds.All);
             m_Rows.Clear();
             m_RenderedOrder.Clear();
             m_Standings.Clear();
@@ -145,6 +145,7 @@ namespace DetoxBet.UI
                     var room = await FirebaseRoomService.GetRoomAsync(m_Code);
                     if (id != m_SubscribeId) return; // la pantalla se cerró mientras cargaba
                     Apply(room);
+                    await RefreshEventsAsync(id);
                 }
                 catch (Exception e)
                 {
@@ -171,6 +172,7 @@ namespace DetoxBet.UI
             m_FinishedAt = settings.Long("finished_at");
             m_DurationSeconds = settings.Long("duration_seconds");
             if (m_DurationSeconds == 0) m_DurationSeconds = ParseDuration(settings.Str("duration"));
+            m_EnabledApps = ShortcutService.EnabledApps(settings);
 
             m_Players.Clear();
             foreach (var u in room.Props("users"))
@@ -179,44 +181,26 @@ namespace DetoxBet.UI
                 {
                     Id = u.Name,
                     Name = FirebaseRoomService.DisplayName(u),
-                    Status = u.Value.Str("status"),
-                    SessionStart = u.Value.Long("current_session_start"),
-                    CountedEnd = u.Value.Long("counted_end"),
-                    TotalSeconds = u.Value.Long("total_seconds"),
                 });
             }
 
-            CheckMyStatusOnce();
             Render();
         }
 
-        // Si la app se cerró estando distraído, al volver se suma ese tiempo.
-        void CheckMyStatusOnce()
+        /// <summary>Lee los eventos de los Atajos de todos los jugadores. Solo hace falta cuando el reto ya empezó.</summary>
+        async System.Threading.Tasks.Task RefreshEventsAsync(int id)
         {
-            if (m_CheckedMyStatus || !m_RoomExists) return;
-            m_CheckedMyStatus = true;
-            var me = m_Players.FirstOrDefault(p => p.Id == m_Me);
-            if (me != null && me.Status == FirebaseRoomService.UserDistracted)
-                _ = FirebaseRoomService.MarkFocusingAsync(m_Code, ServerNow, m_StartedAt, EffectiveEnd);
+            if (!m_RoomExists || m_StartedAt <= 0 || m_Players.Count == 0) return;
+
+            var players = m_Players.Select(p => new KeyValuePair<string, string>(p.Id, p.Name)).ToList();
+            var fetched = await ShortcutService.FetchEventsAsync(players);
+            if (id != m_SubscribeId) return;
+
+            foreach (var kv in fetched) m_Events[kv.Key] = kv.Value;
+            Render();
         }
 
-        // ---------- Distracción: salir / volver a la app ----------
-
-        public override void OnApplicationPause(bool paused)
-        {
-            if (string.IsNullOrEmpty(m_Code) || string.IsNullOrEmpty(m_Me) || !m_RoomExists) return;
-            if (m_Players.All(p => p.Id != m_Me)) return;
-
-            if (paused)
-            {
-                if (IsActive)
-                    _ = FirebaseRoomService.MarkDistractedAsync(m_Code, ServerNow);
-            }
-            else
-            {
-                _ = FirebaseRoomService.MarkFocusingAsync(m_Code, ServerNow, m_StartedAt, EffectiveEnd);
-            }
-        }
+        // Ya no se mide "salir de la app": el tiempo viene de los Atajos (ver ShortcutService).
 
         // ---------- Botón Skip Time ----------
 
@@ -244,16 +228,10 @@ namespace DetoxBet.UI
             if (m_RoomLoaded) Render();
         }
 
-        long DistractionSeconds(Player p)
+        AppUsage UsageOf(Player p)
         {
-            long total = p.TotalSeconds;
-            if (p.Status == FirebaseRoomService.UserDistracted && m_StartedAt > 0)
-            {
-                long from = Math.Max(p.SessionStart, Math.Max(m_StartedAt, p.CountedEnd));
-                long to = Math.Min(ServerNow, EffectiveEnd);
-                if (to > from) total += (to - from) / 1000;
-            }
-            return total;
+            m_Events.TryGetValue(p.Id, out var events);
+            return ShortcutService.Compute(events, m_StartedAt, EffectiveEnd, ServerNow, m_EnabledApps);
         }
 
         void Render()
@@ -281,8 +259,8 @@ namespace DetoxBet.UI
 
             // Ranking: menos tiempo distraído va primero
             var ranked = m_Players
-                .Select(p => (player: p, seconds: DistractionSeconds(p)))
-                .OrderBy(x => x.seconds)
+                .Select(p => (player: p, usage: UsageOf(p)))
+                .OrderBy(x => x.usage.TotalSeconds)
                 .ThenBy(x => x.player.Name)
                 .ToList();
 
@@ -319,7 +297,7 @@ namespace DetoxBet.UI
             RenderStandings(ranked, finished);
         }
 
-        void RenderStandings(List<(Player player, long seconds)> ranked, bool finished)
+        void RenderStandings(List<(Player player, AppUsage usage)> ranked, bool finished)
         {
             var order = ranked.Select(r => r.player.Id).ToList();
             if (!order.SequenceEqual(m_RenderedOrder))
@@ -336,16 +314,17 @@ namespace DetoxBet.UI
 
             for (int i = 0; i < ranked.Count; i++)
             {
-                var (p, seconds) = ranked[i];
+                var (p, usage) = ranked[i];
                 var row = m_Rows[p.Id];
-                bool distracted = p.Status == FirebaseRoomService.UserDistracted && !finished;
+                bool distracted = usage.OpenApp != null && !finished;
                 bool isLoser = finished && ranked.Count > 1 && i == ranked.Count - 1;
 
                 row.Rank.text = $"#{i + 1}";
-                row.Total.text = FormatTotal(seconds);
-                row.Status.text = distracted ? "Currently distracted!"
+                row.Total.text = FormatTotal(usage.TotalSeconds);
+                row.Status.text = distracted ? $"Currently on {AppIds.Label(usage.OpenApp)}!"
                     : finished ? (isLoser ? "Loser" : "Done")
                     : m_StartedAt > 0 ? "Focusing" : "Ready";
+                row.Apps.text = AppBreakdown(usage);
 
                 row.Root.EnableInClassList("player-row--distracted", distracted || isLoser);
                 row.Root.EnableInClassList("player-row--loser", isLoser);
@@ -397,6 +376,10 @@ namespace DetoxBet.UI
             row.Status.AddToClassList("player-row__status");
             statusRow.Add(row.Status);
             info.Add(statusRow);
+
+            row.Apps = new Label();
+            row.Apps.AddToClassList("player-row__apps");
+            info.Add(row.Apps);
             row.Root.Add(info);
 
             var total = new VisualElement();
@@ -413,6 +396,16 @@ namespace DetoxBet.UI
         }
 
         // ---------- Formatos ----------
+
+        /// <summary>"TikTok 3m 20s  ·  Instagram 45s", solo con las apps activadas en la sala.</summary>
+        string AppBreakdown(AppUsage usage)
+        {
+            if (m_StartedAt <= 0) return "";
+            var parts = AppIds.All
+                .Where(a => m_EnabledApps.Contains(a))
+                .Select(a => $"{AppIds.Label(a)} {FormatTotal(usage.SecondsFor(a))}");
+            return string.Join("  ·  ", parts);
+        }
 
         static string FormatTimeLeft(long ms)
         {

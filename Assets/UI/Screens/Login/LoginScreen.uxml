@@ -13,9 +13,11 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="form" class="form">
-            <!-- Opción 1: nombre de usuario -->
-            <ui:TextField name="nameField" placeholder-text="Enter Your Name" max-length="40" class="name-field" />
+            <!-- Nombre (siempre) + contraseña (solo en "Ya tengo cuenta") -->
+            <ui:TextField name="nameField" placeholder-text="Enter Your Name" max-length="20" class="name-field" />
+            <ui:TextField name="passwordField" placeholder-text="Password" password="true" max-length="64" class="name-field password-field" />
             <ui:Button name="enterButton" text="Enter" class="enter-button" />
+            <ui:Label name="modeToggle" text="Already have an account? Log in" class="mode-toggle" />
 
             <!-- Opción 2: Google (se oculta en el Editor) -->
             <ui:VisualElement name="googleSection" class="google-section">

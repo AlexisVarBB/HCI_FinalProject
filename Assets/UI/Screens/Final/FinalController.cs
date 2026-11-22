@@ -80,7 +80,16 @@ namespace DetoxBet.UI
                     m_PunishmentText.text = "This room no longer exists.";
                     return;
                 }
-                Show(room);
+
+                // Tiempo de cada jugador en TikTok / Instagram (eventos de los Atajos). Si falta el de alguien se
+                // reintenta; si sigue fallando se avisa en vez de dar un veredicto con datos incompletos.
+                var players = room.Props("users")
+                    .Select(u => new KeyValuePair<string, string>(u.Name, FirebaseRoomService.DisplayName(u)))
+                    .ToList();
+                var events = await ShortcutService.FetchEventsReliableAsync(players);
+                if (loadId != m_LoadId) return;
+
+                Show(room, events);
             }
             catch (Exception e)
             {
@@ -89,7 +98,7 @@ namespace DetoxBet.UI
             }
         }
 
-        void Show(JToken room)
+        void Show(JToken room, Dictionary<string, JToken> events)
         {
             var settings = room.Child("settings");
             long startedAt = settings.Long("started_at");
@@ -98,19 +107,16 @@ namespace DetoxBet.UI
             long endsAt = startedAt > 0 ? startedAt + duration * 1000 : 0;
             long end = finishedAt > 0 && (endsAt == 0 || finishedAt < endsAt) ? finishedAt : endsAt;
 
-            // Total de cada jugador: lo acumulado + la sesión abierta hasta el fin del reto.
+            // Total de cada jugador: minutos en las apps activadas, contados hasta el fin del reto.
+            // Una sesión que siguió abierta hasta el final cuenta hasta "end".
+            var enabledApps = ShortcutService.EnabledApps(settings);
+            long now = end > 0 ? end : FirebaseRest.ServerNowMs;
             var ranked = room.Props("users")
                 .Select(u =>
                 {
-                    long total = u.Value.Long("total_seconds");
-                    if (u.Value.Str("status") == FirebaseRoomService.UserDistracted && startedAt > 0 && end > 0)
-                    {
-                        long start = u.Value.Long("current_session_start");
-                        long counted = u.Value.Long("counted_end");
-                        long from = Math.Max(start, Math.Max(startedAt, counted));
-                        if (end > from) total += (end - from) / 1000;
-                    }
-                    return (name: FirebaseRoomService.DisplayName(u), seconds: total);
+                    events.TryGetValue(u.Name, out var playerEvents);
+                    var usage = ShortcutService.Compute(playerEvents, startedAt, end, now, enabledApps);
+                    return (name: FirebaseRoomService.DisplayName(u), seconds: usage.TotalSeconds);
                 })
                 .OrderBy(x => x.seconds)
                 .ThenBy(x => x.name)

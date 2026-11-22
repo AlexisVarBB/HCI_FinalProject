@@ -17,6 +17,7 @@
         </ui:VisualElement>
 
         <ui:Label name="greetingLabel" text="Hello, &lt;color=#00F08A&gt;Alexis&lt;/color&gt;! Ready to focus?" class="greeting" />
+        <ui:Label name="protectLink" text="Protect your account · create a password" class="protect-link" />
 
         <ui:VisualElement name="cards" class="cards">
 

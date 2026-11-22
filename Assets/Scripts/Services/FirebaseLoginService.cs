@@ -14,14 +14,32 @@ namespace DetoxBet.Services
         public bool Cancelled => Code == "auth/popup-closed-by-user" || Code == "auth/cancelled-popup-request";
     }
 
+    /// <summary>El nombre ya pertenece a otra cuenta (registro usernames/{llave}).</summary>
+    public class UsernameTakenException : Exception
+    {
+        public string Name { get; }
+        public UsernameTakenException(string name) : base($"El nombre \"{name}\" ya está en uso.") { Name = name; }
+    }
+
+    /// <summary>Resultado de intentar reanudar la sesión al abrir la app.</summary>
+    public enum ResumeResult
+    {
+        None,       // no hay sesión guardada → Login normal
+        LoggedIn,   // ya está dentro
+        NeedsName   // entró con Google pero su nombre estaba ocupado: falta elegir uno
+    }
+
     /// <summary>
-    /// Sesión de la app. Dos formas de entrar, el mismo resultado:
-    ///   • Nombre de usuario → cuenta anónima de Firebase.
-    ///   • Google            → cuenta de Google (solo build web).
-    /// Ambas dan un uid; las reglas de Firebase solo dejan escribir users/{uid} a ese uid.
+    /// Sesión de la app. Tres formas de entrar, el mismo resultado (un uid de Firebase Auth):
+    ///   • Nombre                → cuenta anónima. Se puede "proteger" después con contraseña (registro diferido).
+    ///   • Nombre + contraseña   → para volver a una cuenta protegida desde cualquier dispositivo.
+    ///   • Google                → cuenta de Google (solo build web).
     ///
-    /// users/{uid}/name          → nombre que se muestra (de Google solo se guarda el nombre)
-    /// users/{uid}/provider      → "anonymous" | "google"
+    /// Nombres únicos: usernames/{llave} = uid. Las reglas solo dejan escribirlo si está libre o ya es tuyo.
+    ///
+    /// users/{uid}/name          → nombre visible (de Google solo se guarda el nombre)
+    /// users/{uid}/provider      → "anonymous" | "password" | "google"
+    /// users/{uid}/last_login    → se actualiza al entrar y al reanudar
     /// users/{uid}/current_room  → sala en la que está (para reanudar)
     ///
     /// Vive en el GameObject "AppBootstrap": JavaScript le manda el resultado de Google por SendMessage.
@@ -34,6 +52,13 @@ namespace DetoxBet.Services
         public string Uid => FirebaseAuthService.Uid;
         public bool IsLoggedIn => FirebaseAuthService.IsSignedIn && !string.IsNullOrEmpty(UserName);
 
+        /// <summary>
+        /// true si la cuenta se puede recuperar después de cerrar sesión (tiene contraseña o es de Google).
+        /// false = cuenta anónima: al salir se pierde, así que hay que avisar.
+        /// </summary>
+        public bool CanRecoverAccount => FirebaseAuthService.Provider == FirebaseAuthService.ProviderPassword
+                                      || FirebaseAuthService.Provider == FirebaseAuthService.ProviderGoogle;
+
         /// <summary>Google solo funciona en el build web (necesita la ventana del navegador).</summary>
         public static bool GoogleAvailable =>
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -43,7 +68,9 @@ namespace DetoxBet.Services
 #endif
 
         string UserPath => $"users/{Uid}";
+        static string UsernamePath(string name) => $"usernames/{Username.Key(name)}";
         TaskCompletionSource<string> m_GoogleResult;
+        string m_GoogleSuggestedName;
 
         public static FirebaseLoginService GetOrCreate()
         {
@@ -66,50 +93,103 @@ namespace DetoxBet.Services
 
         // ---------- Reanudar ----------
 
-        /// <summary>
-        /// Al abrir la app: si este dispositivo ya tenía sesión, la recupera (mismo uid) y su nombre.
-        /// true = ya está dentro, no hay que mostrar el login.
-        /// </summary>
-        public async Task<bool> TryResumeAsync()
+        /// <summary>Al abrir la app: si este dispositivo ya tenía sesión, la recupera (mismo uid) y su nombre.</summary>
+        public async Task<ResumeResult> TryResumeAsync()
         {
-            if (!await FirebaseAuthService.RestoreAsync()) return false;
+            if (!await FirebaseAuthService.RestoreAsync()) return ResumeResult.None;
             await FirebaseRest.SyncClockAsync();
 
             var user = await FirebaseRest.GetAsync(UserPath);
             string name = user.Str("name");
-            if (string.IsNullOrEmpty(name)) return false; // tenía sesión pero nunca eligió nombre
+            if (string.IsNullOrEmpty(name))
+            {
+                // Una sesión de Google sin nombre = su nombre estaba ocupado; una anónima sin nombre no sirve.
+                if (FirebaseAuthService.Provider == FirebaseAuthService.ProviderGoogle) return ResumeResult.NeedsName;
+                return ResumeResult.None;
+            }
 
             UserName = name;
-            return true;
+
+            // Cuentas creadas antes del registro de nombres: se reserva su nombre ahora (si sigue libre).
+            try { await ClaimUsernameAsync(name); }
+            catch (UsernameTakenException) { Debug.LogWarning($"[DetoxBet] El nombre {name} ya lo tiene otra cuenta."); }
+
+            // Mantiene "viva" la cuenta (las anónimas inactivas liberan su nombre a los 7 días).
+            await FirebaseRest.PatchAsync(UserPath, new Dictionary<string, object> { { "last_login", FirebaseRest.ServerTimestamp } });
+            return ResumeResult.LoggedIn;
         }
 
-        // ---------- Opción 1: nombre de usuario ----------
+        // ---------- Opción 1: solo nombre (registro diferido) ----------
 
+        /// <summary>Usuario nuevo: crea una cuenta anónima y reserva el nombre. UsernameTakenException si ya existe.</summary>
         public async Task LoginWithNameAsync(string name)
         {
-            // Si ya hay una sesión de Google activa en este dispositivo, se cierra para entrar como anónimo.
+            name = name.Trim();
+            // Si quedó una sesión de otro tipo en este dispositivo, se cierra para entrar como anónimo.
             if (FirebaseAuthService.IsSignedIn && FirebaseAuthService.Provider != FirebaseAuthService.ProviderAnonymous)
                 FirebaseAuthService.SignOut();
 
             if (!FirebaseAuthService.IsSignedIn) await FirebaseAuthService.SignInAnonymouslyAsync();
             await FirebaseRest.SyncClockAsync();
 
+            await ClaimUsernameAsync(name);
             await SaveProfileAsync(name);
         }
 
-        // ---------- Opción 2: Google ----------
+        // ---------- Opción 2: nombre + contraseña ----------
+
+        /// <summary>Vuelve a una cuenta protegida. AuthException si el nombre o la contraseña no coinciden.</summary>
+        public async Task LoginWithPasswordAsync(string name, string password)
+        {
+            if (FirebaseAuthService.IsSignedIn) FirebaseAuthService.SignOut();
+
+            await FirebaseAuthService.SignInWithPasswordAsync(Username.Email(name), password);
+            await FirebaseRest.SyncClockAsync();
+
+            var user = await FirebaseRest.GetAsync(UserPath);
+            string storedName = user.Str("name") ?? name.Trim();
+            await SaveProfileAsync(storedName);
+        }
+
+        /// <summary>
+        /// Registro diferido: le agrega contraseña a la cuenta anónima actual. Mismo uid, mismo nombre,
+        /// misma sala. A partir de aquí se puede volver con nombre + contraseña desde cualquier dispositivo.
+        /// </summary>
+        public async Task ProtectAccountAsync(string password)
+        {
+            if (!IsLoggedIn) throw new AuthException("NO_SESSION", "Inicia sesión primero.");
+            if (CanRecoverAccount) return; // ya tiene contraseña o es de Google
+
+            await FirebaseAuthService.LinkPasswordAsync(Username.Email(UserName), password);
+            await FirebaseRest.PatchAsync(UserPath, new Dictionary<string, object>
+            {
+                { "provider", FirebaseAuthService.ProviderPassword }
+            });
+        }
+
+        // ---------- Opción 3: Google ----------
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         // Plugins/WebGL/DetoxGoogleAuth.jslib
         [DllImport("__Internal")]
+        static extern void DetoxGoogleInit(string apiKey, string authDomain);
+
+        [DllImport("__Internal")]
         static extern void DetoxGoogleArm(string apiKey, string authDomain, string gameObjectName, string methodName);
 #endif
 
+        /// <summary>Deja Firebase Auth listo en el navegador antes del toque (si no, el celular bloquea la ventana).</summary>
+        public static void PrepareGoogle()
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            DetoxGoogleInit(FirebaseConfig.ApiKey, FirebaseConfig.AuthDomain);
+#endif
+        }
+
         /// <summary>
-        /// Prepara el inicio con Google. Hay que llamarlo en el PointerDown del botón:
-        /// el navegador solo permite abrir la ventana de Google dentro del gesto del usuario,
-        /// así que JavaScript la abre al soltar el dedo/clic.
-        /// La tarea termina con el nombre del usuario.
+        /// Prepara el inicio con Google en el PointerDown del botón; JavaScript abre la ventana al soltar.
+        /// Termina con el nombre del usuario, o con UsernameTakenException si su nombre de Google ya está ocupado
+        /// (la sesión de Google queda abierta: falta elegir otro nombre con CompleteGoogleProfileAsync).
         /// </summary>
         public Task<string> BeginGoogleSignIn()
         {
@@ -143,11 +223,16 @@ namespace DetoxBet.Services
                     result.Value<long>("expiresIn"));
                 await FirebaseRest.SyncClockAsync();
 
-                // Si ya había entrado antes con esta cuenta, conserva su nombre; si no, usa el de Google.
+                // Si ya había entrado antes con esta cuenta, conserva su nombre.
                 var existing = await FirebaseRest.GetAsync(UserPath);
                 string name = existing.Str("name");
-                if (string.IsNullOrEmpty(name)) name = result.Value<string>("name");
-                if (string.IsNullOrEmpty(name)) name = "Player";
+                if (string.IsNullOrEmpty(name))
+                {
+                    name = result.Value<string>("name");
+                    if (Username.Validate(name) != null) name = "Player";
+                    m_GoogleSuggestedName = name;
+                    await ClaimUsernameAsync(name); // UsernameTakenException si está ocupado
+                }
 
                 await SaveProfileAsync(name);
                 pending.TrySetResult(name);
@@ -158,7 +243,37 @@ namespace DetoxBet.Services
             }
         }
 
-        // ---------- Perfil y sala actual ----------
+        /// <summary>Google con nombre ocupado: el usuario elige otro nombre para terminar de entrar.</summary>
+        public async Task CompleteGoogleProfileAsync(string name)
+        {
+            if (!FirebaseAuthService.IsSignedIn || FirebaseAuthService.Provider != FirebaseAuthService.ProviderGoogle)
+                throw new AuthException("NO_SESSION", "Vuelve a entrar con Google.");
+
+            name = name.Trim();
+            await ClaimUsernameAsync(name);
+            await SaveProfileAsync(name);
+        }
+
+        /// <summary>El nombre de Google que estaba ocupado (para mostrarlo en el aviso).</summary>
+        public string GoogleSuggestedName => m_GoogleSuggestedName;
+
+        // ---------- Perfil y nombres únicos ----------
+
+        /// <summary>
+        /// Reserva usernames/{llave} = uid. Si el nombre ya es de otra cuenta, las reglas responden
+        /// "Permission denied" y se lanza UsernameTakenException.
+        /// </summary>
+        async Task ClaimUsernameAsync(string name)
+        {
+            try
+            {
+                await FirebaseRest.PutAsync(UsernamePath(name), Uid);
+            }
+            catch (FirebaseRestException e) when (e.Status == 401 || e.Status == 403)
+            {
+                throw new UsernameTakenException(name);
+            }
+        }
 
         async Task SaveProfileAsync(string name)
         {
@@ -181,12 +296,29 @@ namespace DetoxBet.Services
 
         // ---------- Salir ----------
 
-        /// <summary>Cierra sesión en este dispositivo. Con nombre de usuario, esa cuenta anónima ya no se recupera.</summary>
+        /// <summary>
+        /// Cierra sesión en este dispositivo. NO saca al usuario de su sala: el reto sigue y,
+        /// al volver a entrar, la reanudación lo regresa a Room.
+        /// </summary>
         public Task LogoutAsync()
         {
             UserName = null;
             FirebaseAuthService.SignOut();
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Cuenta anónima que sale SIN crear contraseña: esa cuenta ya no se podrá recuperar,
+        /// así que primero libera su nombre para que alguien más pueda usarlo.
+        /// </summary>
+        public async Task LogoutWithoutPasswordAsync()
+        {
+            if (!string.IsNullOrEmpty(UserName))
+            {
+                try { await FirebaseRest.DeleteAsync(UsernamePath(UserName)); }
+                catch (Exception e) { Debug.LogWarning($"[DetoxBet] No se pudo liberar el nombre: {e.Message}"); }
+            }
+            await LogoutAsync();
         }
     }
 }

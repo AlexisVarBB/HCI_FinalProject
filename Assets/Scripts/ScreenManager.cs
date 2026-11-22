@@ -33,6 +33,10 @@ namespace DetoxBet.UI
         [Tooltip("AppFrame.uss: centra la app y le pone un ancho máximo tipo teléfono.")]
         [SerializeField] StyleSheet frameStyle;
 
+        [Header("Sesión")]
+        [Tooltip("SessionUI.uss: diálogo 'Protect your account', enlace del menú y botón de salir en Room.")]
+        [SerializeField] StyleSheet sessionStyle;
+
         [Header("Escritorio")]
         [Tooltip("Responsive.uss: reglas para pantallas anchas (clase app-frame--wide).")]
         [SerializeField] StyleSheet responsiveStyle;
@@ -105,6 +109,31 @@ namespace DetoxBet.UI
             // En el navegador no existe OnApplicationPause: se usa el evento de visibilidad de la pestaña.
             DetoxRegisterVisibility(gameObject.name, nameof(OnVisibilityChanged));
 #endif
+        }
+
+        // ---------- Cerrar sesión desde Room ----------
+
+        /// <summary>
+        /// Agrega "LOG OUT" a la barra superior de Room, junto a Skip Time.
+        /// Cerrar sesión no abandona el reto: el jugador sigue en la sala y al volver a entrar regresa aquí.
+        /// Se hace desde aquí para no tocar RoomController.
+        /// </summary>
+        void AttachRoomLogout(VisualElement frame)
+        {
+            var bar = frame.Q(className: "top-bar");
+            if (bar == null) return;
+
+            var actions = new VisualElement();
+            actions.AddToClassList("top-bar__actions");
+            bar.Add(actions);
+
+            var skip = frame.Q("skipButton");
+            if (skip != null) actions.Add(skip); // mismo elemento: RoomController lo sigue controlando
+
+            var logout = new Button { name = "roomLogoutButton", text = "LOG OUT" };
+            logout.AddToClassList("room-logout-button");
+            logout.clicked += () => AccountDialog.RequestLogout(frame, () => GoTo(AppScreen.Login));
+            actions.Add(logout);
         }
 
         // ---------- Reanudar sesión ----------
@@ -216,6 +245,7 @@ namespace DetoxBet.UI
             root.styleSheets.Clear();
             if (frameStyle != null) root.styleSheets.Add(frameStyle);
             if (responsiveStyle != null) root.styleSheets.Add(responsiveStyle);
+            if (sessionStyle != null) root.styleSheets.Add(sessionStyle);
             root.AddToClassList("app-root");
             root.UnregisterCallback<GeometryChangedEvent>(OnRootGeometryChanged);
             root.RegisterCallback<GeometryChangedEvent>(OnRootGeometryChanged);
@@ -241,6 +271,8 @@ namespace DetoxBet.UI
             CurrentScreen = screen;
             m_Current = entry.controller;
             m_Current.OnShow(frame);
+
+            if (screen == AppScreen.Room) AttachRoomLogout(frame);
         }
 
         void OnApplicationPause(bool paused)

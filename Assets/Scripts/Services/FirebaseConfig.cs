@@ -11,5 +11,8 @@ namespace DetoxBet.Services
         public const string ProjectId = "detoxbet-32aba";
         public const string AuthDomain = ProjectId + ".firebaseapp.com";
         public const string DatabaseUrl = "https://detoxbet-32aba-default-rtdb.firebaseio.com/";
+
+        /// <summary>Dominio de los correos internos ({llave}@...) que Firebase usa para las contraseñas. No existe en la vida real.</summary>
+        public const string UsernameEmailDomain = "users.detoxbet.app";
     }
 }
