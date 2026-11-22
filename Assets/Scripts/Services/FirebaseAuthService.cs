@@ -7,11 +7,56 @@ using UnityEngine.Networking;
 
 namespace DetoxBet.Services
 {
+    /// <summary>Error de Firebase Authentication con su código (EMAIL_EXISTS, INVALID_LOGIN_CREDENTIALS…) y un mensaje para mostrar.</summary>
+    public class AuthException : Exception
+    {
+        public string Code { get; }
+        public AuthException(string code, string friendly) : base(friendly) { Code = code; }
+
+        /// <summary>Convierte el error de Firebase en algo que se le puede mostrar al usuario.</summary>
+        public static AuthException From(FirebaseRestException e)
+        {
+            string text = e.Message ?? "";
+            string code =
+                text.Contains("INVALID_LOGIN_CREDENTIALS") || text.Contains("INVALID_PASSWORD") || text.Contains("EMAIL_NOT_FOUND") ? "INVALID_LOGIN_CREDENTIALS" :
+                text.Contains("EMAIL_EXISTS") ? "EMAIL_EXISTS" :
+                text.Contains("WEAK_PASSWORD") ? "WEAK_PASSWORD" :
+                text.Contains("TOO_MANY_ATTEMPTS_TRY_LATER") ? "TOO_MANY_ATTEMPTS_TRY_LATER" :
+                text.Contains("USER_DISABLED") ? "USER_DISABLED" :
+                text.Contains("CREDENTIAL_TOO_OLD_LOGIN_AGAIN") ? "CREDENTIAL_TOO_OLD_LOGIN_AGAIN" :
+                text.Contains("OPERATION_NOT_ALLOWED") ? "OPERATION_NOT_ALLOWED" :
+                "UNKNOWN";
+
+            string friendly = code switch
+            {
+                "INVALID_LOGIN_CREDENTIALS" => "Nombre o contraseña incorrectos.",
+                "EMAIL_EXISTS" => "Ese nombre ya tiene contraseña.",
+                "WEAK_PASSWORD" => $"La contraseña debe tener al menos {Username.MinPasswordLength} caracteres.",
+                "TOO_MANY_ATTEMPTS_TRY_LATER" => "Demasiados intentos. Espera unos minutos e intenta de nuevo.",
+                "USER_DISABLED" => "Esta cuenta está deshabilitada.",
+                "CREDENTIAL_TOO_OLD_LOGIN_AGAIN" => "Por seguridad, vuelve a iniciar sesión e intenta de nuevo.",
+                "OPERATION_NOT_ALLOWED" => "El inicio con contraseña no está disponible. Revisa la configuración de Firebase.",
+                _ => "No se pudo conectar. Intenta de nuevo."
+            };
+
+            // Lo que no se reconoce queda en la Consola con el texto original de Firebase.
+            if (code == "UNKNOWN" || code == "OPERATION_NOT_ALLOWED")
+                Debug.LogWarning($"[DetoxBet] Error de Firebase Auth: {text}");
+
+            return new AuthException(code, friendly);
+        }
+    }
+
     /// <summary>
     /// Sesión de Firebase Authentication por REST (funciona en Editor y en WebGL).
     ///
     /// - Nombre de usuario → cuenta anónima (accounts:signUp).
+    /// - Nombre + contraseña → accounts:signInWithPassword (con el correo interno del nombre).
+    /// - Proteger cuenta → accounts:signUp CON el idToken actual: le vincula correo + contraseña
+    ///   a la cuenta anónima, MISMO uid (así lo hace el SDK oficial de Firebase).
     /// - Google → la cuenta llega desde JavaScript (FirebaseLoginService) y se guarda aquí.
+    ///
+    /// La contraseña nunca se guarda: se manda una vez a Firebase y se cambia por tokens.
     ///
     /// En ambos casos se guarda el refresh token en el dispositivo: al reabrir la app
     /// se recupera el mismo uid sin pedir nada. El id token (válido 1 h) se renueva solo.
@@ -20,6 +65,7 @@ namespace DetoxBet.Services
     {
         public const string ProviderAnonymous = "anonymous";
         public const string ProviderGoogle = "google";
+        public const string ProviderPassword = "password";
 
         const string RefreshTokenKey = "detoxbet_refresh_token";
         const string ProviderKey = "detoxbet_auth_provider";
@@ -69,6 +115,52 @@ namespace DetoxBet.Services
                 json.Value<string>("refreshToken"),
                 long.Parse(json.Value<string>("expiresIn")),
                 ProviderAnonymous);
+        }
+
+        /// <summary>Inicia sesión con correo interno + contraseña. Lanza AuthException si falla.</summary>
+        public static async Task SignInWithPasswordAsync(string email, string password)
+        {
+            string url = $"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FirebaseConfig.ApiKey}";
+            var body = new JObject { ["email"] = email, ["password"] = password, ["returnSecureToken"] = true };
+
+            JObject json;
+            try { json = JObject.Parse(await PostAsync(url, body.ToString(), "application/json")); }
+            catch (FirebaseRestException e) { throw AuthException.From(e); }
+
+            SetSession(
+                json.Value<string>("localId"),
+                json.Value<string>("idToken"),
+                json.Value<string>("refreshToken"),
+                long.Parse(json.Value<string>("expiresIn")),
+                ProviderPassword);
+        }
+
+        /// <summary>
+        /// Le agrega correo + contraseña a la cuenta actual (anónima). Conserva el mismo uid,
+        /// así que la sala, el historial y el nombre siguen siendo suyos.
+        ///
+        /// Se usa accounts:signUp con el idToken (vincular), NO accounts:update (cambiar correo):
+        /// con la protección contra enumeración de correos activada, accounts:update exige verificar
+        /// el correo nuevo, y los correos internos (@users.detoxbet.app) no reciben mensajes.
+        /// </summary>
+        public static async Task LinkPasswordAsync(string email, string password)
+        {
+            string idToken = await GetIdTokenAsync();
+            if (string.IsNullOrEmpty(idToken)) throw new AuthException("NO_SESSION", "Inicia sesión primero.");
+
+            string url = $"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FirebaseConfig.ApiKey}";
+            var body = new JObject { ["idToken"] = idToken, ["email"] = email, ["password"] = password, ["returnSecureToken"] = true };
+
+            JObject json;
+            try { json = JObject.Parse(await PostAsync(url, body.ToString(), "application/json")); }
+            catch (FirebaseRestException e) { throw AuthException.From(e); }
+
+            SetSession(
+                json.Value<string>("localId"),
+                json.Value<string>("idToken"),
+                json.Value<string>("refreshToken"),
+                long.Parse(json.Value<string>("expiresIn")),
+                ProviderPassword);
         }
 
         /// <summary>Guarda la sesión que devolvió el inicio con Google (desde JavaScript).</summary>

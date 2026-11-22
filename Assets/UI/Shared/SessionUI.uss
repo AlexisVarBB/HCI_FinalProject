@@ -1,0 +1,183 @@
+/*
+ * SessionUI.uss — estilos de sesión compartidos por varias pantallas.
+ * ScreenManager lo carga en la raíz (campo "Session Style").
+ */
+
+/* ---------- Diálogo "Protege tu cuenta" ---------- */
+
+.account-dialog {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0 24px;
+    background-color: rgba(0, 0, 0, 0.82);
+    align-items: center;
+    justify-content: center;
+}
+
+.account-dialog__card {
+    align-self: stretch;
+    max-width: 420px;
+    padding: 20px;
+    border-radius: 18px;
+    border-width: 1px;
+    border-color: rgba(0, 240, 138, 0.45);
+    background-color: #131821;
+}
+
+.app-frame--wide .account-dialog__card {
+    align-self: center;
+    width: 420px;
+}
+
+.account-dialog__title {
+    margin: 0;
+    padding: 0;
+    font-size: 17px;
+    -unity-font-style: bold;
+    color: #F2F4F7;
+}
+
+.account-dialog__body {
+    margin: 8px 0 0 0;
+    padding: 0;
+    font-size: 12px;
+    white-space: normal;
+    color: #8A93A3;
+}
+
+.account-dialog__user {
+    margin: 14px 0 8px 0;
+    padding: 0;
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #00F08A;
+}
+
+.account-dialog__input {
+    margin: 0;
+}
+
+.account-dialog__input .unity-base-text-field__input {
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #0A0D12;
+    font-size: 14px;
+    color: #E6E9EE;
+}
+
+.account-dialog__input:focus .unity-base-text-field__input {
+    border-color: #00F08A;
+}
+
+.account-dialog__status {
+    display: none;
+    margin: 8px 0 0 0;
+    padding: 0;
+    font-size: 12px;
+    white-space: normal;
+    color: #FF5C6C;
+}
+
+.account-dialog__status--visible {
+    display: flex;
+}
+
+.account-dialog__primary {
+    height: 46px;
+    margin: 16px 0 0 0;
+    border-radius: 12px;
+    border-width: 0;
+    background-color: #00F08A;
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: #0A0D12;
+}
+
+.account-dialog__primary:hover {
+    background-color: #2BFFA2;
+}
+
+.account-dialog__danger {
+    height: 40px;
+    margin: 8px 0 0 0;
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: rgba(255, 92, 108, 0.5);
+    background-color: rgba(255, 92, 108, 0.08);
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #FF5C6C;
+}
+
+.account-dialog__danger:hover {
+    background-color: rgba(255, 92, 108, 0.16);
+}
+
+.account-dialog__cancel {
+    height: 36px;
+    margin: 4px 0 0 0;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    font-size: 12px;
+    color: #8A93A3;
+}
+
+.account-dialog__cancel:hover {
+    color: #F2F4F7;
+}
+
+.account-dialog__primary:disabled,
+.account-dialog__danger:disabled,
+.account-dialog__cancel:disabled {
+    opacity: 0.5;
+}
+
+/* ---------- Menu: "Protect your account" ---------- */
+
+.protect-link {
+    display: none;
+    margin: 10px 0 0 0;
+    padding: 0;
+    font-size: 12px;
+    color: #00F08A;
+}
+
+.protect-link--visible {
+    display: flex;
+}
+
+.protect-link:hover {
+    -unity-font-style: bold;
+}
+
+/* ---------- Room: botón de cerrar sesión ---------- */
+
+.top-bar__actions {
+    flex-direction: row;
+    align-items: center;
+}
+
+.room-logout-button {
+    height: 22px;
+    margin: 0 0 0 8px;
+    padding: 0 10px;
+    border-radius: 11px;
+    border-width: 1px;
+    border-color: #262D38;
+    background-color: #131821;
+    font-size: 10px;
+    letter-spacing: 1px;
+    -unity-font-style: bold;
+    color: #8A93A3;
+}
+
+.room-logout-button:hover {
+    border-color: #3A4352;
+    color: #F2F4F7;
+}

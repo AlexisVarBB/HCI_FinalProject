@@ -1,7 +1,17 @@
 mergeInto(LibraryManager.library, {
+  // Inicializa Firebase Auth en cuanto se muestra el Login.
+  // En el celular, la ventana de Google solo se permite si se abre justo en el toque;
+  // si Firebase se inicializara en ese momento, tardaría demasiado y el navegador la bloquearía.
+  DetoxGoogleInit: function (apiKeyPtr, authDomainPtr) {
+    if (typeof firebase === "undefined" || !firebase.auth) return;
+    if (firebase.apps.length) return;
+    firebase.initializeApp({ apiKey: UTF8ToString(apiKeyPtr), authDomain: UTF8ToString(authDomainPtr) });
+    // La sesión la guarda Unity; el SDK de JS no necesita recordarla.
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
+  },
+
   // Prepara el inicio con Google. Unity lo llama en el pointerdown del botón;
-  // la ventana de Google se abre al soltar (pointerup / touchend), que es un gesto real
-  // del usuario y por eso el navegador no la bloquea.
+  // la ventana se abre al soltar (pointerup / touchend), que es un gesto real del usuario.
   // Al terminar responde a Unity con SendMessage(gameObject, method, json).
   // Solo se envía a Unity: uid, tokens y nombre. No se usa la foto ni el correo.
   DetoxGoogleArm: function (apiKeyPtr, authDomainPtr, gameObjectPtr, methodPtr) {
@@ -20,7 +30,6 @@ mergeInto(LibraryManager.library, {
 
     if (!firebase.apps.length) {
       firebase.initializeApp({ apiKey: apiKey, authDomain: authDomain });
-      // La sesión la guarda Unity; el SDK de JS no necesita recordarla.
       firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
     }
 
@@ -41,6 +50,7 @@ mergeInto(LibraryManager.library, {
       var provider = new firebase.auth.GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
 
+      // Se llama directo dentro del gesto (sin esperar nada antes) para que no se bloquee.
       firebase.auth().signInWithPopup(provider).then(function (result) {
         var user = result.user;
         return user.getIdTokenResult().then(function (token) {

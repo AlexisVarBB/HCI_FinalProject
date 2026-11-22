@@ -45,8 +45,8 @@ namespace DetoxBet.Services
     ///   { "app": "tiktok" | "instagram", "event": "open" | "close", "ts": hora del servidor (ms) }
     /// y Firebase crea un nodo nuevo por evento.
     ///
-    /// Para la demo el token es el primer nombre del jugador en minúsculas y sin acentos
-    /// ("José Carlos Béjar" → "jose"), así que no hay que emparejar nada.
+    /// El token es la llave del nombre del jugador (Username.Key): "José Carlos Béjar" → "josecarlosbejar".
+    /// Los nombres son únicos (usernames/{llave}), así que cada token es de un solo jugador.
     ///
     /// El tiempo no se guarda: se calcula emparejando cada "open" con su "close". Así lo puede calcular
     /// cualquier jugador aunque el celular de quien está en TikTok tenga la pestaña suspendida.
@@ -59,33 +59,11 @@ namespace DetoxBet.Services
 
         // ---------- Token ----------
 
-        /// <summary>Primer nombre, en minúsculas, sin acentos ni símbolos. Vacío si no queda nada.</summary>
-        public static string TokenFor(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name)) return "";
-
-            string first = name.Trim().Split(new[] { ' ', '_', '-', '.' }, StringSplitOptions.RemoveEmptyEntries)
-                .FirstOrDefault() ?? "";
-
-            var sb = new StringBuilder(first.Length);
-            foreach (char raw in first)
-            {
-                char c = RemoveAccent(char.ToLowerInvariant(raw));
-                if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) sb.Append(c);
-            }
-            return sb.ToString();
-        }
-
-        static char RemoveAccent(char c) => c switch
-        {
-            'á' or 'à' or 'ä' or 'â' => 'a',
-            'é' or 'è' or 'ë' or 'ê' => 'e',
-            'í' or 'ì' or 'ï' or 'î' => 'i',
-            'ó' or 'ò' or 'ö' or 'ô' => 'o',
-            'ú' or 'ù' or 'ü' or 'û' => 'u',
-            'ñ' => 'n',
-            _ => c
-        };
+        /// <summary>
+        /// Token de los Atajos = la llave del nombre (Username.Key): minúsculas, sin acentos ni símbolos.
+        /// "Jorge Ruiz" → "jorgeruiz". Como los nombres son únicos, dos jugadores nunca comparten historial.
+        /// </summary>
+        public static string TokenFor(string name) => Username.Key(name);
 
         // ---------- Apps activadas en la sala ----------
 
