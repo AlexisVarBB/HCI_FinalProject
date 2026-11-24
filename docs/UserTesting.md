@@ -66,7 +66,7 @@ Based on observations from Round 1, the team implemented three major improvement
 
 | Before (Version A: Global Time Only — Initial Design) | After (Version B: Per-App Breakdown & Custom Time — Live Build) |
 | :---: | :---: |
-| ![Before: Global Time Only](./images/figma-draft-leaderboard.png) | ![After: Per-App Breakdown](./images/testing-after-app-breakdown.png) |
+| ![Before: Global Time Only](./images/figma-draft-leaderboard.png) | ![After: Per-App Breakdown](./images/render-screen4-room-leaderboard.png) |
 
 ---
 
