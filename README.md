@@ -10,7 +10,7 @@
 ### Quick Project Links
 * **Live Web Application (Render):** [https://detoxbet.onrender.com/](https://detoxbet.onrender.com/)
 * **Interactive Figma Prototype:** [View Figma Prototype](https://www.figma.com/proto/tFNzWftkr6Y9P3w3IUE0qh/HCI_FinalProject?node-id=2-2&t=Pxz0hZDHfV9rA6Jk-1)
-* **Commercial Video ($\le$ 2 min):** `[INSERT YOUTUBE / GOOGLE DRIVE VIDEO LINK HERE]`
+* **Commercial Video ($\le$ 2 min):** [Commercial](https://drive.google.com/drive/folders/1TTMye28UmGv2lhOkaLbfrGeStCjbt4pa)
 
 ---
 
