@@ -31,8 +31,8 @@ $$\text{Login} \rightarrow \text{Menu} \rightarrow (\text{CreateRoom} \lor \text
 
 | Login & Menu | Create Room & Join Validation | Live Room & Final Verdict |
 | :---: | :---: | :---: |
-| ![Login](./images/render-screen1-login.png) | ![Create Room](./images/render-screen3a-createroom.png) | ![Active Room](./images/render-screen4-room-leaderboard.png) |
-| ![Menu](./images/render-screen2-menu.png) | ![Join Room States](./images/render-screen3b-joinroom-states.png) | ![Final Verdict](./images/render-screen5-final-verdict.png) |
+| <img src="./images/render-screen1-login.png" alt="Login" width="220" /> | <img src="./images/render-screen3a-createroom.png" alt="Create Room" width="220" /> | <img src="./images/render-screen4-room-leaderboard.png" alt="Active Room" width="220" /> |
+| <img src="./images/render-screen2-menu.png" alt="Menu" width="220" /> | <img src="./images/render-screen3b-joinroom-states.png" alt="Join Room States" width="220" /> | <img src="./images/render-screen5-final-verdict.png" alt="Final Verdict" width="220" /> |
 
 ---
 
@@ -75,7 +75,9 @@ DetoxBet is engineered around the hardware ergonomics, software constraints, and
   * Four lightweight shortcuts (`Abrir Instagram`, `Cerrar Instagram`, `Abrir Tiktok`, `Cerrar Tiktok`) are triggered automatically in the background (*Run Immediately* enabled, *Notify When Run* disabled) whenever the user opens or closes TikTok or Instagram.
   * Each shortcut sends a silent `POST` request with a server timestamp (`{"app":"tiktok","event":"open","ts":{".sv":"timestamp"}}`) to `.../users/shortcut_events/{token}.json`, allowing `ShortcutService.cs` to reconstruct exact usage intervals even when the browser tab is suspended.
 
-![iOS Shortcuts Automation Setup](./images/ios-shortcuts-automation.png)
+<p align="center">
+  <img src="./images/ios-shortcuts-automation.png" alt="iOS Shortcuts Automation Setup" width="420" />
+</p>
 *Figure 1: Native iOS Personal Automations configured with "Run Immediately" to silently report TikTok and Instagram open/close events to Firebase.*
 
 * **Touch & Gesture Modality (Session 03 — Modality / Gesture & Direct Manipulation):** `ScreenManager.cs` detects mobile viewports (applying responsive layout rules below the `900px` desktop breakpoint) to optimize the UI for vertical (`portrait`) single-handed iPhone interaction. Interactive toggles, lists, and buttons are sized for comfortable thumb reach and provide immediate visual state feedback so the system clearly communicates what it recognized.
