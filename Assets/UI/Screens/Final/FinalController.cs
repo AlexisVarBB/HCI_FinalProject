@@ -8,10 +8,7 @@ using UnityEngine.UIElements;
 
 namespace DetoxBet.UI
 {
-    /// <summary>
-    /// Pantalla final: lee rooms/{código} una vez y muestra ganador, perdedor y castigo.
-    /// El código se toma de PlayerPrefs (lo guardan Create Room y Join Room).
-    /// </summary>
+    
     public class FinalController : ScreenController
     {
         public event Action onNewChallenge;
@@ -54,7 +51,7 @@ namespace DetoxBet.UI
         public override void OnHide()
         {
             if (m_NewChallengeButton != null) m_NewChallengeButton.clicked -= OnNewChallengeClicked;
-            m_LoadId++; // descarta una carga que siga en curso
+            m_LoadId++; 
         }
 
         async void Load()
@@ -81,8 +78,7 @@ namespace DetoxBet.UI
                     return;
                 }
 
-                // Tiempo de cada jugador en TikTok / Instagram (eventos de los Atajos). Si falta el de alguien se
-                // reintenta; si sigue fallando se avisa en vez de dar un veredicto con datos incompletos.
+              
                 var players = room.Props("users")
                     .Select(u => new KeyValuePair<string, string>(u.Name, FirebaseRoomService.DisplayName(u)))
                     .ToList();
@@ -93,7 +89,7 @@ namespace DetoxBet.UI
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DetoxBet] Error cargando resultados: {e}");
+                Debug.LogError($"[DetoxBet] Error loading results: {e}");
                 if (loadId == m_LoadId) m_PunishmentText.text = "Could not load results.";
             }
         }
@@ -107,8 +103,6 @@ namespace DetoxBet.UI
             long endsAt = startedAt > 0 ? startedAt + duration * 1000 : 0;
             long end = finishedAt > 0 && (endsAt == 0 || finishedAt < endsAt) ? finishedAt : endsAt;
 
-            // Total de cada jugador: minutos en las apps activadas, contados hasta el fin del reto.
-            // Una sesión que siguió abierta hasta el final cuenta hasta "end".
             var enabledApps = ShortcutService.EnabledApps(settings);
             long now = end > 0 ? end : FirebaseRest.ServerNowMs;
             var ranked = room.Props("users")
@@ -172,7 +166,7 @@ namespace DetoxBet.UI
         {
             PlayerPrefs.DeleteKey(CreateRoomController.RoomCodeKey);
             PlayerPrefs.Save();
-            _ = FirebaseRoomService.LeaveRoomAsync(); // ya no se reanuda en esta sala
+            _ = FirebaseRoomService.LeaveRoomAsync(); 
             onNewChallenge?.Invoke();
         }
 

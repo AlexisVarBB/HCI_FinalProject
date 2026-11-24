@@ -7,13 +7,13 @@ using UnityEngine.Networking;
 
 namespace DetoxBet.Services
 {
-    /// <summary>Error de Firebase Authentication con su código (EMAIL_EXISTS, INVALID_LOGIN_CREDENTIALS…) y un mensaje para mostrar.</summary>
+    
     public class AuthException : Exception
     {
         public string Code { get; }
         public AuthException(string code, string friendly) : base(friendly) { Code = code; }
 
-        /// <summary>Convierte el error de Firebase en algo que se le puede mostrar al usuario.</summary>
+        
         public static AuthException From(FirebaseRestException e)
         {
             string text = e.Message ?? "";
@@ -29,17 +29,17 @@ namespace DetoxBet.Services
 
             string friendly = code switch
             {
-                "INVALID_LOGIN_CREDENTIALS" => "Nombre o contraseña incorrectos.",
-                "EMAIL_EXISTS" => "Ese nombre ya tiene contraseña.",
-                "WEAK_PASSWORD" => $"La contraseña debe tener al menos {Username.MinPasswordLength} caracteres.",
-                "TOO_MANY_ATTEMPTS_TRY_LATER" => "Demasiados intentos. Espera unos minutos e intenta de nuevo.",
-                "USER_DISABLED" => "Esta cuenta está deshabilitada.",
-                "CREDENTIAL_TOO_OLD_LOGIN_AGAIN" => "Por seguridad, vuelve a iniciar sesión e intenta de nuevo.",
-                "OPERATION_NOT_ALLOWED" => "El inicio con contraseña no está disponible. Revisa la configuración de Firebase.",
-                _ => "No se pudo conectar. Intenta de nuevo."
+                "INVALID_LOGIN_CREDENTIALS" => "Incorrect name or password.",
+                "EMAIL_EXISTS" => "The name is already in use.",
+                "WEAK_PASSWORD" => $"The password must have at least {Username.MinPasswordLength} characters.",
+                "TOO_MANY_ATTEMPTS_TRY_LATER" => "Too many attempts. Wait a few minutes and try again.",
+                "USER_DISABLED" => "This account is no longer available.",
+                "CREDENTIAL_TOO_OLD_LOGIN_AGAIN" => "For security, log in again.",
+                "OPERATION_NOT_ALLOWED" => "Log in with password not available. Check firebase settings.",
+                _ => "Could not connect. Try again."
             };
 
-            // Lo que no se reconoce queda en la Consola con el texto original de Firebase.
+           
             if (code == "UNKNOWN" || code == "OPERATION_NOT_ALLOWED")
                 Debug.LogWarning($"[DetoxBet] Error de Firebase Auth: {text}");
 
@@ -47,20 +47,7 @@ namespace DetoxBet.Services
         }
     }
 
-    /// <summary>
-    /// Sesión de Firebase Authentication por REST (funciona en Editor y en WebGL).
-    ///
-    /// - Nombre de usuario → cuenta anónima (accounts:signUp).
-    /// - Nombre + contraseña → accounts:signInWithPassword (con el correo interno del nombre).
-    /// - Proteger cuenta → accounts:signUp CON el idToken actual: le vincula correo + contraseña
-    ///   a la cuenta anónima, MISMO uid (así lo hace el SDK oficial de Firebase).
-    /// - Google → la cuenta llega desde JavaScript (FirebaseLoginService) y se guarda aquí.
-    ///
-    /// La contraseña nunca se guarda: se manda una vez a Firebase y se cambia por tokens.
-    ///
-    /// En ambos casos se guarda el refresh token en el dispositivo: al reabrir la app
-    /// se recupera el mismo uid sin pedir nada. El id token (válido 1 h) se renueva solo.
-    /// </summary>
+    
     public static class FirebaseAuthService
     {
         public const string ProviderAnonymous = "anonymous";
@@ -80,9 +67,7 @@ namespace DetoxBet.Services
         static float s_ExpiresAt;
         static Task s_RefreshTask;
 
-        // ---------- Iniciar / recuperar sesión ----------
-
-        /// <summary>Recupera la sesión guardada en el dispositivo. false si no hay o ya no es válida.</summary>
+        
         public static async Task<bool> RestoreAsync()
         {
             if (IsSignedIn) return true;
@@ -97,13 +82,13 @@ namespace DetoxBet.Services
             }
             catch (FirebaseRestException e) when (e.Status == 400)
             {
-                // Token revocado o cuenta borrada: se empieza de cero.
+                
                 SignOut();
                 return false;
             }
         }
 
-        /// <summary>Crea una cuenta anónima nueva (opción "nombre de usuario").</summary>
+        
         public static async Task SignInAnonymouslyAsync()
         {
             string url = $"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FirebaseConfig.ApiKey}";
@@ -117,7 +102,7 @@ namespace DetoxBet.Services
                 ProviderAnonymous);
         }
 
-        /// <summary>Inicia sesión con correo interno + contraseña. Lanza AuthException si falla.</summary>
+       
         public static async Task SignInWithPasswordAsync(string email, string password)
         {
             string url = $"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FirebaseConfig.ApiKey}";
@@ -135,14 +120,7 @@ namespace DetoxBet.Services
                 ProviderPassword);
         }
 
-        /// <summary>
-        /// Le agrega correo + contraseña a la cuenta actual (anónima). Conserva el mismo uid,
-        /// así que la sala, el historial y el nombre siguen siendo suyos.
-        ///
-        /// Se usa accounts:signUp con el idToken (vincular), NO accounts:update (cambiar correo):
-        /// con la protección contra enumeración de correos activada, accounts:update exige verificar
-        /// el correo nuevo, y los correos internos (@users.detoxbet.app) no reciben mensajes.
-        /// </summary>
+        
         public static async Task LinkPasswordAsync(string email, string password)
         {
             string idToken = await GetIdTokenAsync();
@@ -163,11 +141,11 @@ namespace DetoxBet.Services
                 ProviderPassword);
         }
 
-        /// <summary>Guarda la sesión que devolvió el inicio con Google (desde JavaScript).</summary>
+        
         public static void SetGoogleSession(string uid, string idToken, string refreshToken, long expiresInSeconds) =>
             SetSession(uid, idToken, refreshToken, expiresInSeconds, ProviderGoogle);
 
-        /// <summary>Olvida la sesión en este dispositivo.</summary>
+        
         public static void SignOut()
         {
             Uid = Provider = s_IdToken = s_RefreshToken = null;
@@ -177,9 +155,7 @@ namespace DetoxBet.Services
             PlayerPrefs.Save();
         }
 
-        // ---------- Token para la base de datos ----------
-
-        /// <summary>Id token vigente (lo renueva si está por vencer). null si no hay sesión.</summary>
+        
         public static async Task<string> GetIdTokenAsync()
         {
             if (!IsSignedIn) return null;
@@ -192,7 +168,7 @@ namespace DetoxBet.Services
             return s_IdToken;
         }
 
-        // ---------- Internos ----------
+       
 
         static async Task RefreshAsync(string refreshToken)
         {

@@ -15,25 +15,15 @@ namespace DetoxBet.Services
         public FirebaseRestException(long status, string message) : base($"Firebase {status}: {message}") { Status = status; }
     }
 
-    /// <summary>
-    /// Acceso a Firebase Realtime Database por su REST API (UnityWebRequest).
-    /// Funciona igual en el Editor, en Windows y en WebGL (navegador de PC o celular).
-    /// Cada ruta "a/b/c" se convierte en https://.../a/b/c.json?auth=TOKEN
-    /// (el token de FirebaseAuthService identifica al usuario ante las reglas).
-    /// </summary>
+    
     public static class FirebaseRest
     {
         public const string DatabaseUrl = FirebaseConfig.DatabaseUrl;
 
-        /// <summary>Valor especial que Firebase reemplaza por su hora (ms) al guardar.</summary>
+       
         public static readonly Dictionary<string, object> ServerTimestamp = new() { { ".sv", "timestamp" } };
 
-        // ---------- Peticiones ----------
-
-        /// <summary>
-        /// Lee una ruta. Devuelve null si no existe.
-        /// "query" son parámetros extra ya codificados, p. ej. orderBy=%22%24key%22&amp;limitToLast=500
-        /// </summary>
+      
         public static async Task<JToken> GetAsync(string path, string query = null)
         {
             string text = await SendAsync("GET", path, null, query);
@@ -41,13 +31,13 @@ namespace DetoxBet.Services
             return token == null || token.Type == JTokenType.Null ? null : token;
         }
 
-        /// <summary>Reemplaza todo lo que hay en la ruta.</summary>
+        
         public static Task PutAsync(string path, object value) => SendAsync("PUT", path, value);
 
-        /// <summary>Actualiza solo las claves indicadas (no borra las demás).</summary>
+       
         public static Task PatchAsync(string path, object value) => SendAsync("PATCH", path, value);
 
-        /// <summary>Borra la ruta.</summary>
+       
         public static Task DeleteAsync(string path) => SendAsync("DELETE", path, null);
 
         static async Task<string> SendAsync(string method, string path, object body, string query = null)
@@ -90,21 +80,18 @@ namespace DetoxBet.Services
             return string.Join("/", parts);
         }
 
-        // ---------- Reloj del servidor ----------
+        
 
         static long s_OffsetMs;
         static bool s_Synced;
         static Task s_SyncTask;
 
-        /// <summary>Hora actual del servidor de Firebase, estimada en el dispositivo (ms).</summary>
+        
         public static long ServerNowMs => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + s_OffsetMs;
 
         public static bool ClockSynced => s_Synced;
 
-        /// <summary>
-        /// Calcula la diferencia entre el reloj del dispositivo y el de Firebase
-        /// (escribe la hora del servidor en _time/{id}, la lee y la borra).
-        /// </summary>
+        
         public static Task SyncClockAsync() => s_SyncTask ??= SyncClockInternalAsync();
 
         static async Task SyncClockInternalAsync()
@@ -126,13 +113,13 @@ namespace DetoxBet.Services
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[DetoxBet] No se pudo sincronizar el reloj: {e.Message}");
-                s_SyncTask = null; // reintentar la próxima vez
+                Debug.LogWarning($"[DetoxBet] Clock synchronization failed: {e.Message}");
+                s_SyncTask = null; 
             }
         }
     }
 
-    /// <summary>Lectura cómoda de valores dentro de un JToken (null-safe).</summary>
+ 
     public static class Json
     {
         public static JToken Child(this JToken token, string key) =>

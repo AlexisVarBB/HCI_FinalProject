@@ -5,10 +5,7 @@ using UnityEngine.UIElements;
 
 namespace DetoxBet.UI
 {
-    /// <summary>
-    /// Menu. Cerrar sesión pasa por AccountDialog: con cuenta anónima avisa antes de salir.
-    /// "Protect your account" aparece solo si la cuenta aún no tiene contraseña.
-    /// </summary>
+   
     public class MenuController : ScreenController
     {
         public event Action onLoggedOut;
@@ -66,7 +63,7 @@ namespace DetoxBet.UI
             m_GreetingLabel.text = $"Hello, <color={Accent}>{name}</color>! Ready to focus?";
         }
 
-        // Con cuenta anónima, AccountDialog avisa y ofrece crear contraseña antes de salir.
+        
         void OnLogoutClicked(ClickEvent _) =>
             AccountDialog.RequestLogout(m_Root, () => onLoggedOut?.Invoke());
 

@@ -2,23 +2,14 @@ using System.Text;
 
 namespace DetoxBet.Services
 {
-    /// <summary>
-    /// Reglas del nombre de usuario.
-    ///
-    /// - Lo que el usuario escribe se muestra tal cual ("Jorge Ruiz").
-    /// - Para comparar se usa su LLAVE: minúsculas, sin acentos, solo letras y números ("jorgeruiz").
-    ///   Dos nombres con la misma llave son el mismo nombre: no puede haber "Jorge" y "jorge".
-    /// - La llave se usa en: usernames/{llave} (registro de nombres únicos),
-    ///   el correo interno de la contraseña ({llave}@users.detoxbet.app)
-    ///   y el token de los Atajos (users/shortcut_events/{llave}).
-    /// </summary>
+  
     public static class Username
     {
         public const int MinLength = 2;
         public const int MaxLength = 20;
-        public const int MinPasswordLength = 6; // mínimo que exige Firebase
+        public const int MinPasswordLength = 6; 
 
-        /// <summary>Llave normalizada. Vacía si no queda ninguna letra o número.</summary>
+      
         public static string Key(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return "";
@@ -31,22 +22,22 @@ namespace DetoxBet.Services
             return sb.ToString();
         }
 
-        /// <summary>Correo interno con el que Firebase guarda la contraseña. El usuario nunca lo ve.</summary>
+       
         public static string Email(string name) => $"{Key(name)}@{FirebaseConfig.UsernameEmailDomain}";
 
-        /// <summary>null si el nombre es válido; si no, el mensaje para mostrar.</summary>
+       
         public static string Validate(string name)
         {
             string trimmed = name?.Trim() ?? "";
             if (trimmed.Length < MinLength || trimmed.Length > MaxLength)
-                return $"El nombre debe tener entre {MinLength} y {MaxLength} caracteres.";
+                return $"The name must have between {MinLength} and {MaxLength} characters.";
 
             foreach (char c in trimmed)
                 if (!char.IsLetterOrDigit(c) && c != ' ' && c != '_' && c != '-')
-                    return "Usa solo letras, números, espacios, - o _.";
+                    return "Use only letters, numbers, spaces, - or _.";
 
             if (Key(trimmed).Length < MinLength)
-                return "El nombre necesita al menos 2 letras o números.";
+                return "The name must have at least 2 letters or numbers.";
             return null;
         }
 

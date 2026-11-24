@@ -3,7 +3,7 @@ using UnityEngine.UIElements;
 
 namespace DetoxBet.UI
 {
-    // Escudo con rayo dibujado con Painter2D (viewBox 24x24 escalado al tamaño del elemento).
+    
     [UxmlElement]
     public partial class ShieldBoltIcon : VisualElement
     {
@@ -45,7 +45,7 @@ namespace DetoxBet.UI
             p.lineJoin = LineJoin.Round;
             p.lineCap = LineCap.Round;
 
-            // Escudo
+          
             p.BeginPath();
             p.MoveTo(P(12f, 2.5f));
             p.BezierCurveTo(P(14.5f, 4.4f), P(17f, 5.2f), P(19.5f, 5.4f));
@@ -57,7 +57,7 @@ namespace DetoxBet.UI
             p.ClosePath();
             p.Stroke();
 
-            // Rayo
+         
             p.BeginPath();
             p.MoveTo(P(13f, 7.5f));
             p.LineTo(P(9.5f, 12.5f));

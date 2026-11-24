@@ -5,14 +5,7 @@ using UnityEngine.UIElements;
 
 namespace DetoxBet.UI
 {
-    /// <summary>
-    /// Login con tres caminos:
-    ///   • Nuevo:            solo nombre → cuenta anónima (la contraseña se pide después, al salir o desde el menú).
-    ///   • Ya tengo cuenta:  nombre + contraseña → vuelve a una cuenta protegida desde cualquier dispositivo.
-    ///   • Google:           solo en el build web.
-    /// Al abrir la app, si este dispositivo ya tenía sesión, entra solo ("Reconnecting...").
-    /// Los nombres son únicos: si el nombre ya existe, se avisa.
-    /// </summary>
+   
     public class LoginController : ScreenController
     {
         public const string UserNameKey = "detoxbet_user_name";
@@ -20,9 +13,9 @@ namespace DetoxBet.UI
 
         enum Mode
         {
-            New,        // solo nombre
-            Existing,   // nombre + contraseña
-            GoogleName  // entró con Google pero su nombre estaba ocupado: elige otro
+            New,        
+            Existing,  
+            GoogleName  
         }
 
         const string StatusVisible = "status-label--visible";
@@ -33,7 +26,7 @@ namespace DetoxBet.UI
         const string FormExisting = "form--existing";
         const string ToggleHidden = "mode-toggle--hidden";
 
-        static bool s_ResumeTried; // solo se intenta una vez por apertura de la app
+        static bool s_ResumeTried; 
 
         FirebaseLoginService m_Service;
         VisualElement m_Form;
@@ -66,11 +59,11 @@ namespace DetoxBet.UI
             m_PasswordField.RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
             m_NameField.RegisterValueChangedCallback(OnFieldChanged);
             m_PasswordField.RegisterValueChangedCallback(OnFieldChanged);
-            // PointerDown: hay que preparar Google antes de que se suelte el dedo/clic.
+           
             m_GoogleButton.RegisterCallback<PointerDownEvent>(OnGooglePointerDown, TrickleDown.TrickleDown);
 
             m_GoogleSection.EnableInClassList(GoogleHidden, !FirebaseLoginService.GoogleAvailable);
-            FirebaseLoginService.PrepareGoogle(); // Firebase listo antes del toque
+            FirebaseLoginService.PrepareGoogle(); 
 
             if (PlayerPrefs.HasKey(UserNameKey))
                 m_NameField.SetValueWithoutNotify(PlayerPrefs.GetString(UserNameKey));
@@ -94,7 +87,7 @@ namespace DetoxBet.UI
             m_GoogleButton?.UnregisterCallback<PointerDownEvent>(OnGooglePointerDown, TrickleDown.TrickleDown);
         }
 
-        // ---------- Modos ----------
+    
 
         void SetMode(Mode mode)
         {
@@ -122,7 +115,7 @@ namespace DetoxBet.UI
             SetMode(m_Mode == Mode.Existing ? Mode.New : Mode.Existing);
         }
 
-        // ---------- Reanudar sesión al abrir la app ----------
+      
 
         async void TryResume()
         {
@@ -145,12 +138,12 @@ namespace DetoxBet.UI
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[DetoxBet] No se pudo reanudar la sesión: {e.Message}");
+                Debug.LogWarning($"[DetoxBet] Session could not be resumed: {e.Message}");
             }
             SetBusy(false);
         }
 
-        // ---------- Enter: nombre / nombre + contraseña / nombre para Google ----------
+      
 
         void OnKeyDown(KeyDownEvent evt)
         {
@@ -180,11 +173,11 @@ namespace DetoxBet.UI
             string password = m_PasswordField.value ?? "";
             if (m_Mode == Mode.Existing && password.Length < Username.MinPasswordLength)
             {
-                ShowFieldError(m_PasswordField, $"La contraseña tiene al menos {Username.MinPasswordLength} caracteres.");
+                ShowFieldError(m_PasswordField, $"The password has at least {Username.MinPasswordLength} characters.");
                 return;
             }
 
-            SetBusy(true, m_Mode == Mode.Existing ? "Logging in..." : "Entrando...");
+            SetBusy(true, m_Mode == Mode.Existing ? "Logging in..." : "Entering...");
             try
             {
                 switch (m_Mode)
@@ -198,8 +191,8 @@ namespace DetoxBet.UI
             catch (UsernameTakenException e)
             {
                 ShowFieldError(m_NameField, m_Mode == Mode.GoogleName
-                    ? $"\"{e.Name}\" también está en uso. Prueba otro nombre."
-                    : $"\"{e.Name}\" ya está en uso. Si es tuyo, inicia sesión con tu contraseña.");
+                    ? $"\"{e.Name}\" is taken. Choose other name."
+                    : $"\"{e.Name}\" is already in use. If it is yours, log in with your password.");
                 SetBusy(false);
             }
             catch (AuthException e)
@@ -209,13 +202,13 @@ namespace DetoxBet.UI
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DetoxBet] Error al iniciar sesión: {e}");
-                ShowStatus("No se pudo conectar. Intenta de nuevo.", StatusError);
+                Debug.LogError($"[DetoxBet]Log in failed: {e}");
+                ShowStatus("Connection failed. Try again.", StatusError);
                 SetBusy(false);
             }
         }
 
-        // ---------- Google ----------
+       
 
         async void OnGooglePointerDown(PointerDownEvent _)
         {
@@ -235,41 +228,41 @@ namespace DetoxBet.UI
             }
             catch (GoogleSignInException e) when (e.Cancelled)
             {
-                SetBusy(false); // cerró la ventana: no es error
+                SetBusy(false); 
             }
             catch (GoogleSignInException e) when (e.Code == "auth/popup-blocked")
             {
-                ShowStatus("El navegador bloqueó la ventana de Google. Toca el botón otra vez. Si sigue pasando, abre el link en Safari o Chrome.", StatusError);
+                ShowStatus("Google PopUp Menu was blocked. Tap the button again. Try opening the link at Safari or Chrome.", StatusError);
                 SetBusy(false);
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DetoxBet] Error con Google: {e}");
-                ShowStatus("No se pudo entrar con Google. Si abriste el link desde WhatsApp o Instagram, ábrelo en Safari o Chrome.", StatusError);
+                Debug.LogError($"[DetoxBet] Error with Google: {e}");
+                ShowStatus("Fail at entering with Google. If you open the link from WhatsApp or Intsagram, try it again at Safari or Chrome.", StatusError);
                 SetBusy(false);
             }
         }
 
-        /// <summary>El nombre de Google ya existe: se avisa y se pide otro para terminar de entrar.</summary>
+     
         void AskGoogleName(string takenName)
         {
             SetMode(Mode.GoogleName);
             m_NameField.SetValueWithoutNotify("");
             m_NameField.AddToClassList(FieldError);
             ShowStatus(string.IsNullOrEmpty(takenName)
-                ? "Elige un nombre para terminar de entrar con Google."
-                : $"El nombre \"{takenName}\" ya está en uso. Escribe otro para terminar de entrar con Google.", StatusError);
+                ? "Choose a name to enter with Google."
+                : $"The name \"{takenName}\" was taken. Choose another one to log in with Google.", StatusError);
             m_NameField.schedule.Execute(() => m_NameField.Focus());
         }
 
-        // ---------- Comunes ----------
+       
 
         void Succeed(string name)
         {
             PlayerPrefs.SetString(UserNameKey, name);
             PlayerPrefs.Save();
             m_PasswordField.SetValueWithoutNotify("");
-            ShowStatus($"¡Bienvenido, {name}!", StatusSuccess);
+            ShowStatus($"¡Welcome, {name}!", StatusSuccess);
             onLoggedIn?.Invoke(name);
         }
 

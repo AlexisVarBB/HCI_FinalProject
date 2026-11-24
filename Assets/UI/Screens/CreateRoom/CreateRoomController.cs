@@ -32,20 +32,20 @@ namespace DetoxBet.UI
         };
         const int DefaultPreset = 2; // 7 Days
 
-        // Límites del modo Customize
+       
         static readonly Dictionary<Unit, (int min, int max, long seconds, string key, string label)> UnitInfo = new()
         {
             { Unit.Hours,  (1, 72, 3600L,    "hours",  "Hours")  },
             { Unit.Days,   (1, 31, 86400L,   "days",   "Days")   },
             { Unit.Weeks,  (1, 12, 604800L,  "weeks",  "Weeks")  },
-            { Unit.Months, (1, 12, 2592000L, "months", "Months") }, // mes = 30 días
+            { Unit.Months, (1, 12, 2592000L, "months", "Months") }, 
         };
 
         const string PunishmentPrefix = "punishment_";
         const string AppPrefix = "app_";
         const float DragThreshold = 10f;
 
-        // Clases USS
+        // USS classes
         const string SelectOpen = "select--open";
         const string OptionsOpen = "options--open";
         const string Option = "option";
@@ -144,7 +144,7 @@ namespace DetoxBet.UI
                 m_PunishmentCards.Add(card);
                 card.RegisterCallback<ClickEvent>(OnPunishmentClicked);
             });
-            // Guarda dónde empezó el toque para no seleccionar al hacer swipe.
+          
             m_PunishmentScroll.RegisterCallback<PointerDownEvent>(OnScrollPointerDown, TrickleDown.TrickleDown);
 
             m_GenerateButton.clicked += OnGenerateClicked;
@@ -166,7 +166,7 @@ namespace DetoxBet.UI
             m_CodeDisplay?.UnregisterCallback<ClickEvent>(OnCodeClicked);
             if (m_EnterRoomButton != null) m_EnterRoomButton.clicked -= OnEnterRoomClicked;
             StopWatchingPlayers();
-            // Los callbacks de unidades son lambdas; se descartan al reconstruir el árbol.
+           
         }
 
         void ResetForm()
@@ -183,7 +183,6 @@ namespace DetoxBet.UI
             SetBusy(false);
         }
 
-        // ---------- Duración ----------
 
         void BuildDurationOptions()
         {
@@ -270,7 +269,7 @@ namespace DetoxBet.UI
             m_DurationLabel.text = $"Custom · {amount} {unitLabel}";
         }
 
-        // ---------- Apps ----------
+     
 
         void OnAppClicked(ClickEvent evt)
         {
@@ -279,13 +278,13 @@ namespace DetoxBet.UI
             HideStatus();
         }
 
-        // ---------- Castigos ----------
+       
 
         void OnScrollPointerDown(PointerDownEvent evt) => m_ScrollPointerDown = evt.position;
 
         void OnPunishmentClicked(ClickEvent evt)
         {
-            // Si el dedo se movió, fue swipe, no selección.
+          
             if (Vector2.Distance(m_ScrollPointerDown, evt.position) > DragThreshold) return;
 
             var card = (VisualElement)evt.currentTarget;
@@ -299,7 +298,6 @@ namespace DetoxBet.UI
                 card.EnableInClassList(PunishmentSelected, card.name == PunishmentPrefix + key);
         }
 
-        // ---------- Generar ----------
 
         void OnBackClicked(ClickEvent _)
         {
@@ -320,13 +318,13 @@ namespace DetoxBet.UI
             }
             if (!anyApp)
             {
-                ShowStatus("Selecciona al menos una app.", StatusError);
+                ShowStatus("Pick at least one app.", StatusError);
                 return;
             }
 
             if (FirebaseLoginService.Instance == null || !FirebaseLoginService.Instance.IsLoggedIn)
             {
-                ShowStatus("Inicia sesión primero.", StatusError);
+                ShowStatus("Log in.", StatusError);
                 return;
             }
 
@@ -353,8 +351,8 @@ namespace DetoxBet.UI
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DetoxBet] Error al crear la sala: {e}");
-                ShowStatus("No se pudo crear la sala. Intenta de nuevo.", StatusError);
+                Debug.LogError($"[DetoxBet] Room creation failed: {e}");
+                ShowStatus("The room could not be created. Try again.", StatusError);
             }
             finally
             {
@@ -362,7 +360,7 @@ namespace DetoxBet.UI
             }
         }
 
-        // ---------- Ventana Room Ready ----------
+    
 
         void ShowCodeModal(string code)
         {
@@ -384,7 +382,6 @@ namespace DetoxBet.UI
             m_CodeModal.RemoveFromClassList(ModalVisible);
         }
 
-        // Consulta cada 1.5 s quién va entrando con el código.
         async void WatchPlayers(string code)
         {
             int id = ++m_WatchId;
@@ -400,7 +397,7 @@ namespace DetoxBet.UI
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning($"[DetoxBet] No se pudo leer a los jugadores: {e.Message}");
+                    Debug.LogWarning($"[DetoxBet] The players could not be read: {e.Message}");
                 }
                 await Awaitable.WaitForSecondsAsync(1.5f);
             }
@@ -416,7 +413,7 @@ namespace DetoxBet.UI
             m_CopyHint.AddToClassList(HintCopied);
         }
 
-        // Cierra la sala (status "active", empieza el reloj) y pasa a la pantalla Room.
+   
         async void OnEnterRoomClicked()
         {
             string code = m_CreatedCode;
@@ -432,10 +429,10 @@ namespace DetoxBet.UI
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DetoxBet] Error al iniciar el reto: {e}");
+                Debug.LogError($"[DetoxBet] Challenge failed: {e}");
                 m_EnterRoomButton.SetEnabled(true);
                 m_EnterRoomButton.text = "Enter Room Now";
-                m_PlayersLabel.text = "No se pudo iniciar. Intenta de nuevo.";
+                m_PlayersLabel.text = "Error. Try again.";
             }
         }
 

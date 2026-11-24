@@ -5,21 +5,12 @@ using UnityEngine.UIElements;
 
 namespace DetoxBet.UI
 {
-    /// <summary>
-    /// Diálogo "Protege tu cuenta" y flujo de cerrar sesión, compartido por Menu y Room.
-    /// Estilos: UI/Shared/SessionUI.uss (ScreenManager lo carga para todas las pantallas).
-    ///
-    /// Registro diferido: la contraseña se pide solo cuando hace falta.
-    ///   • Cerrar sesión con cuenta recuperable (contraseña o Google) → sale directo.
-    ///   • Cerrar sesión con cuenta anónima → aviso: crear contraseña y salir, salir sin contraseña o cancelar.
-    ///   • "Protege tu cuenta" en el menú → crear contraseña sin salir.
-    /// Cerrar sesión NO saca al jugador de su sala: el reto sigue.
-    /// </summary>
+   
     public static class AccountDialog
     {
         const string DialogName = "accountDialog";
 
-        /// <summary>Cerrar sesión desde cualquier pantalla. onLoggedOut = ir al Login.</summary>
+       
         public static async void RequestLogout(VisualElement screenRoot, Action onLoggedOut)
         {
             var service = FirebaseLoginService.GetOrCreate();
@@ -33,7 +24,7 @@ namespace DetoxBet.UI
             Show(screenRoot, loggingOut: true, onLoggedOut, onProtected: null);
         }
 
-        /// <summary>Crear contraseña sin salir (opción "Protege tu cuenta" del menú).</summary>
+       
         public static void ShowProtect(VisualElement screenRoot, Action onProtected) =>
             Show(screenRoot, loggingOut: false, onLoggedOut: null, onProtected);
 
@@ -105,7 +96,7 @@ namespace DetoxBet.UI
                 string value = password.value ?? "";
                 if (value.Length < Username.MinPasswordLength)
                 {
-                    ShowError($"La contraseña debe tener al menos {Username.MinPasswordLength} caracteres.");
+                    ShowError($"The password must have at least {Username.MinPasswordLength} characters.");
                     return;
                 }
 
@@ -133,8 +124,8 @@ namespace DetoxBet.UI
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"[DetoxBet] Error al proteger la cuenta: {e}");
-                    ShowError("No se pudo guardar la contraseña. Intenta de nuevo.");
+                    Debug.LogError($"[DetoxBet] Error at protecting account : {e}");
+                    ShowError("The password could not be saved. Try again.");
                     SetBusy(false);
                 }
             };

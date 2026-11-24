@@ -8,19 +8,15 @@ using UnityEngine.UIElements;
 
 namespace DetoxBet.UI
 {
-    /// <summary>
-    /// Pantalla Room: consulta rooms/{código} cada 1.5 s y, durante el reto, lee los eventos que mandan los
-    /// Atajos de iOS (abrir / cerrar TikTok e Instagram) para calcular cuánto tiempo lleva cada jugador en cada app.
-    /// El código se toma de PlayerPrefs (lo guardan Create Room y Join Room).
-    /// </summary>
+  
     public class RoomController : ScreenController
     {
         public event Action<string> onChallengeFinished;
 
         class Player
         {
-            public string Id;   // uid
-            public string Name; // nombre visible (de aquí sale el token de sus Atajos)
+            public string Id;   
+            public string Name; 
         }
 
         class Row
@@ -41,7 +37,7 @@ namespace DetoxBet.UI
 
         const int AvatarColors = 6;
 
-        // Elementos UI
+        
         Label m_RoomCodeLabel, m_TimerCaption, m_TimerValue, m_PunishmentLabel;
         VisualElement m_TimerCard, m_PunishmentIcon;
         Button m_SkipButton;
@@ -51,10 +47,10 @@ namespace DetoxBet.UI
         readonly Dictionary<string, Row> m_Rows = new();
         List<string> m_RenderedOrder = new();
 
-        // Datos de Firebase
+        
         string m_Code;
-        string m_Me;      // mi uid
-        string m_HostId;  // uid del anfitrión
+        string m_Me;      
+        string m_HostId;  
         bool m_RoomLoaded;
         bool m_RoomExists;
         string m_RoomStatus;
@@ -64,7 +60,7 @@ namespace DetoxBet.UI
         long m_DurationSeconds;
         long m_FinishedAt;
         readonly List<Player> m_Players = new();
-        // Eventos de los Atajos por jugador (uid → historial). Se conserva el último dato bueno si una lectura falla.
+       
         readonly Dictionary<string, JToken> m_Events = new();
         HashSet<string> m_EnabledApps = new(AppIds.All);
         bool m_FinishRequested;
@@ -75,12 +71,12 @@ namespace DetoxBet.UI
 
         static long ServerNow => FirebaseRest.ServerNowMs;
         long EndsAt => m_StartedAt > 0 ? m_StartedAt + m_DurationSeconds * 1000 : 0;
-        // Fin real: el que pase primero entre el tiempo programado y Skip Time.
+       
         long EffectiveEnd => m_FinishedAt > 0 && (EndsAt == 0 || m_FinishedAt < EndsAt) ? m_FinishedAt : EndsAt;
         bool IsActive => m_RoomStatus == FirebaseRoomService.StatusActive && m_StartedAt > 0 && ServerNow < EndsAt;
         bool IsFinished => m_RoomStatus == FirebaseRoomService.StatusFinished || (m_StartedAt > 0 && ServerNow >= EndsAt);
 
-        // ---------- Ciclo de vida ----------
+     
 
         public override void OnShow(VisualElement root)
         {
@@ -131,7 +127,7 @@ namespace DetoxBet.UI
             m_SkipButton.RemoveFromClassList("skip-button--visible");
         }
 
-        // ---------- Firebase ----------
+       
 
         async void Subscribe()
         {
@@ -143,13 +139,13 @@ namespace DetoxBet.UI
                 try
                 {
                     var room = await FirebaseRoomService.GetRoomAsync(m_Code);
-                    if (id != m_SubscribeId) return; // la pantalla se cerró mientras cargaba
+                    if (id != m_SubscribeId) return; 
                     Apply(room);
                     await RefreshEventsAsync(id);
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning($"[DetoxBet] Error leyendo la sala: {e.Message}");
+                    Debug.LogWarning($"[DetoxBet] Error entering the room: {e.Message}");
                     if (!m_RoomLoaded) m_TimerValue.text = "Could not connect.";
                 }
                 await Awaitable.WaitForSecondsAsync(PollSeconds);
@@ -187,7 +183,7 @@ namespace DetoxBet.UI
             Render();
         }
 
-        /// <summary>Lee los eventos de los Atajos de todos los jugadores. Solo hace falta cuando el reto ya empezó.</summary>
+        
         async System.Threading.Tasks.Task RefreshEventsAsync(int id)
         {
             if (!m_RoomExists || m_StartedAt <= 0 || m_Players.Count == 0) return;
@@ -200,9 +196,7 @@ namespace DetoxBet.UI
             Render();
         }
 
-        // Ya no se mide "salir de la app": el tiempo viene de los Atajos (ver ShortcutService).
-
-        // ---------- Botón Skip Time ----------
+    
 
         async void OnSkipClicked()
         {
@@ -213,7 +207,7 @@ namespace DetoxBet.UI
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DetoxBet] Error al terminar el reto: {e}");
+                Debug.LogError($"[DetoxBet] Error ending the challenge: {e}");
             }
             finally
             {
@@ -221,7 +215,6 @@ namespace DetoxBet.UI
             }
         }
 
-        // ---------- Dibujar ----------
 
         void Tick()
         {
@@ -250,21 +243,21 @@ namespace DetoxBet.UI
             m_SkipButton.EnableInClassList("skip-button--visible", m_HostId == m_Me && m_StartedAt > 0 && !finished);
             m_TimerCard.EnableInClassList("timer-card--finished", finished);
 
-            // Castigo
+           
             string punishmentName = m_Punishment != null && PunishmentNames.TryGetValue(m_Punishment, out var n) ? n : m_Punishment ?? "";
             m_PunishmentLabel.text = punishmentName;
             m_PunishmentIcon.ClearClassList();
             m_PunishmentIcon.AddToClassList("punishment-tag__icon");
             if (m_Punishment != null) m_PunishmentIcon.AddToClassList($"punishment-tag__icon--{m_Punishment}");
 
-            // Ranking: menos tiempo distraído va primero
+         
             var ranked = m_Players
                 .Select(p => (player: p, usage: UsageOf(p)))
                 .OrderBy(x => x.usage.TotalSeconds)
                 .ThenBy(x => x.player.Name)
                 .ToList();
 
-            // Tiempo
+           
             if (finished)
             {
                 m_TimerCaption.text = "FINAL RESULTS";
@@ -395,9 +388,7 @@ namespace DetoxBet.UI
             return row;
         }
 
-        // ---------- Formatos ----------
-
-        /// <summary>"TikTok 3m 20s  ·  Instagram 45s", solo con las apps activadas en la sala.</summary>
+     
         string AppBreakdown(AppUsage usage)
         {
             if (m_StartedAt <= 0) return "";
@@ -438,7 +429,7 @@ namespace DetoxBet.UI
             return Math.Abs(hash % AvatarColors);
         }
 
-        // Para salas viejas que solo tienen "duration": "7_days"
+        
         static long ParseDuration(string duration)
         {
             if (string.IsNullOrEmpty(duration)) return 0;

@@ -56,7 +56,7 @@ namespace DetoxBet.UI
             SetBusy(false);
             Refresh();
 
-            // Abre el teclado al entrar a la pantalla.
+           
             m_CodeInput.schedule.Execute(() => m_CodeInput.Focus());
         }
 
@@ -74,7 +74,7 @@ namespace DetoxBet.UI
 
         void OnCodeChanged(ChangeEvent<string> evt)
         {
-            // Solo letras y números, en mayúsculas, máximo 4.
+            
             var clean = new StringBuilder(CodeLength);
             foreach (char c in evt.newValue ?? "")
             {
@@ -128,7 +128,7 @@ namespace DetoxBet.UI
 
             if (FirebaseLoginService.Instance == null || !FirebaseLoginService.Instance.IsLoggedIn)
             {
-                ShowStatus("Inicia sesión primero.", StatusError);
+                ShowStatus("Log in.", StatusError);
                 return;
             }
 
@@ -147,8 +147,8 @@ namespace DetoxBet.UI
             catch (RoomClosedException e) { ShowCodeError(e.Message); }
             catch (Exception e)
             {
-                Debug.LogError($"[DetoxBet] Error al unirse a la sala: {e}");
-                ShowStatus("No se pudo conectar. Intenta de nuevo.", StatusError);
+                Debug.LogError($"[DetoxBet] Error joining the room: {e}");
+                ShowStatus("Connection failed. Try again.", StatusError);
             }
             finally
             {

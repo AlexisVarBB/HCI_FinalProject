@@ -194,6 +194,7 @@ MonoBehaviour:
   roomScreen: {fileID: 9197481963319205126, guid: 96fcfe1c78eecb74aa100c84b240eeff, type: 3}
   finalScreen: {fileID: 9197481963319205126, guid: 56c7fad2e998dda4dac3fc0e8968ecec, type: 3}
   frameStyle: {fileID: 7433441132597879392, guid: abdf69a2000106d43b438f48e3c8c335, type: 3}
+  sessionStyle: {fileID: 7433441132597879392, guid: 1e0748d81d4602b4d904fcdefe339deb, type: 3}
   responsiveStyle: {fileID: 7433441132597879392, guid: 297f601037d454248aa236fec561bd29, type: 3}
   wideBreakpoint: 900
   firstScreen: 0
@@ -422,7 +423,11 @@ MonoBehaviour:
         m_SelectedSource:
           rid: -2
         m_Provider2DCache:
-          rid: -2
+          rid: 7782671475313999942
+    - rid: 7782671475313999942
+      type: {class: 'Provider2DCache`1[[UnityEngine.Rendering.Universal.Light2DProvider, Unity.RenderPipelines.Universal.2D.Runtime]]', ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.2D.Runtime}
+      data:
+        m_Cache: []
 --- !u!4 &619394802
 Transform:
   m_ObjectHideFlags: 0
